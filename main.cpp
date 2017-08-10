@@ -1,16 +1,52 @@
 #include <gtkmm.h>
 #include <iostream>
 
-Gtk::Window* pHelloWorldWindow = nullptr;
-// Gtk::Window* pAnotherWindow = nullptr;
+using namespace std;
+
+Gtk::Window* pMainWindow = nullptr;
+
+Gtk::DrawingArea* pViewportDrawingArea = nullptr;
+
+Gtk::Entry* pStepEntry = nullptr;
+
+Gtk::Button* pUpButton = nullptr;
+Gtk::Button* pDownButton = nullptr;
+Gtk::Button* pLeftButton = nullptr;
+Gtk::Button* pRightButton = nullptr;
+Gtk::Button* pInButton = nullptr;
+Gtk::Button* pOutButton = nullptr;
 
 static
-void on_button_clicked()
+void on_up_button_clicked()
 {
-  if(pHelloWorldWindow){
-  	std::cout << "Bye World!\n";
-    pHelloWorldWindow->hide(); //hide() will cause main::run() to end.
-  }
+  // if(pMainWindow){
+  // }
+  // cout << "ey" << pStepEntry->get_text() << endl;
+}
+
+void on_down_button_clicked()
+{
+  cout << "ey" << endl;
+}
+
+void on_left_button_clicked()
+{
+  cout << "ey" << endl;
+}
+
+void on_right_button_clicked()
+{
+  cout << "ey" << endl;
+}
+
+void on_in_button_clicked()
+{
+  cout << "ey" << endl;
+}
+
+void on_out_button_clicked()
+{
+  cout << "ey" << endl;
 }
 
 int main (int argc, char **argv)
@@ -21,7 +57,7 @@ int main (int argc, char **argv)
   auto refBuilder = Gtk::Builder::create();
   try
   {
-    refBuilder->add_from_file("helloworld.glade");
+    refBuilder->add_from_file("sgi.glade");
   }
   catch(const Glib::FileError& ex)
   {
@@ -39,24 +75,54 @@ int main (int argc, char **argv)
     return 1;
   }
 
-  //Get the GtkBuilder-instantiated Window:
-  refBuilder->get_widget("HelloWorldWindow", pHelloWorldWindow);
-  if(pHelloWorldWindow)
+  refBuilder->get_widget("MainWindow", pMainWindow);
+  if(pMainWindow)
   {
-    //Get the GtkBuilder-instantiated Button, and connect a signal handler:
-    Gtk::Button* pButton = nullptr;
-    refBuilder->get_widget("button1", pButton);
-    if(pButton)
+
+    refBuilder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
+
+    refBuilder->get_widget("StepEntry", pStepEntry);
+
+    refBuilder->get_widget("UpButton", pUpButton);
+    if(pUpButton)
     {
-      pButton->signal_clicked().connect( sigc::ptr_fun(on_button_clicked) );
+      pUpButton->signal_clicked().connect( sigc::ptr_fun(on_up_button_clicked) );
     }
 
-    std::cout << "Hello World!\n";
+    refBuilder->get_widget("DownButton", pDownButton);
+    if(pDownButton)
+    {
+      pDownButton->signal_clicked().connect( sigc::ptr_fun(on_down_button_clicked) );
+    }
 
-    app->run(*pHelloWorldWindow);
+    refBuilder->get_widget("LeftButton", pLeftButton);
+    if(pLeftButton)
+    {
+      pLeftButton->signal_clicked().connect( sigc::ptr_fun(on_left_button_clicked) );
+    }
+
+    refBuilder->get_widget("RightButton", pRightButton);
+    if(pRightButton)
+    {
+      pRightButton->signal_clicked().connect( sigc::ptr_fun(on_right_button_clicked) );
+    }
+
+    refBuilder->get_widget("InButton", pInButton);
+    if(pInButton)
+    {
+      pInButton->signal_clicked().connect( sigc::ptr_fun(on_in_button_clicked) );
+    }
+
+    refBuilder->get_widget("OutButton", pOutButton);
+    if(pOutButton)
+    {
+      pOutButton->signal_clicked().connect( sigc::ptr_fun(on_out_button_clicked) );
+    }
+
+    app->run(*pMainWindow);
   }
 
-  delete pHelloWorldWindow;
+  delete pMainWindow;
 
   return 0;
 }
