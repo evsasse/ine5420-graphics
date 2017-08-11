@@ -1,5 +1,10 @@
-#include <gtkmm.h>
 #include <iostream>
+
+#include <gtkmm.h>
+#include <cairomm/context.h>
+
+#include "drawable.h"
+#include "viewport.h"
 
 using namespace std;
 
@@ -16,41 +21,78 @@ Gtk::Button* pRightButton = nullptr;
 Gtk::Button* pInButton = nullptr;
 Gtk::Button* pOutButton = nullptr;
 
+Viewport* viewport = nullptr;
+
 static
 void on_up_button_clicked()
 {
-  // if(pMainWindow){
-  // }
-  // cout << "ey" << pStepEntry->get_text() << endl;
+  viewport->x -= 10;
+  pViewportDrawingArea->queue_draw();
 }
 
 void on_down_button_clicked()
 {
-  cout << "ey" << endl;
+  viewport->x += 10;
+  pViewportDrawingArea->queue_draw();
 }
 
 void on_left_button_clicked()
 {
-  cout << "ey" << endl;
+  viewport->y -= 10;
+  pViewportDrawingArea->queue_draw();
 }
 
 void on_right_button_clicked()
 {
-  cout << "ey" << endl;
+  viewport->y -= 10;
+  pViewportDrawingArea->queue_draw();
 }
 
 void on_in_button_clicked()
 {
-  cout << "ey" << endl;
+  viewport->scale += 0.1;
+  pViewportDrawingArea->queue_draw();
 }
 
 void on_out_button_clicked()
 {
-  cout << "ey" << endl;
+  viewport->scale -= 0.1;
+  pViewportDrawingArea->queue_draw();
+}
+
+bool on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
+{
+  Gtk::Allocation allocation = pViewportDrawingArea->get_allocation();
+
+  auto x_center = allocation.get_width() / 2;
+  auto y_center = allocation.get_height() / 2;
+
+  for(auto drawable : viewport->drawables){
+    // drawable.draw(cr);
+
+    double x = x_center + drawable.coordinate.x;
+    double y = y_center + drawable.coordinate.y;
+
+    cr->set_source_rgb(0, 0, 0);
+    cr->move_to(x-5, y-5);
+    cr->line_to(x+5, y-5);
+    cr->line_to(x+5, y+5);
+    cr->line_to(x-5, y+5);
+    cr->fill();
+  }
+
+  return true;
 }
 
 int main (int argc, char **argv)
 {
+  viewport = new Viewport();
+  viewport->drawables.push_back(Point(Coordinate(-50, -50)));
+  viewport->drawables.push_back(Point(Coordinate(50, -50)));
+  viewport->drawables.push_back(Point(Coordinate(0, 0)));
+  viewport->drawables.push_back(Point(Coordinate(-50, 50)));
+  viewport->drawables.push_back(Point(Coordinate(50, 50)));
+
   auto app = Gtk::Application::create(argc, argv, "br.ufsc.ine5420.sgi");
 
   //Load the GtkBuilder file and instantiate its widgets:
@@ -78,8 +120,11 @@ int main (int argc, char **argv)
   refBuilder->get_widget("MainWindow", pMainWindow);
   if(pMainWindow)
   {
-
     refBuilder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
+    if(pViewportDrawingArea)
+    {
+      pViewportDrawingArea->signal_draw().connect( sigc::ptr_fun(on_viewport_drawing_area_draw) );
+    }
 
     refBuilder->get_widget("StepEntry", pStepEntry);
 
@@ -123,6 +168,7 @@ int main (int argc, char **argv)
   }
 
   delete pMainWindow;
+  delete viewport;
 
   return 0;
 }
