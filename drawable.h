@@ -1,53 +1,50 @@
-#ifndef DRAWABLE
-#define DRAWABLE
+#ifndef DRAWABLE_H
+#define DRAWABLE_H
 
 #include <vector>
+#include <string>
 
-using namespace std;
+struct Coordinate {
 
-class Coordinate {
-public:
 	Coordinate(double x, double y) :
-	x(x), y(y)
-	{};
+		x(x), y(y) {}
 
 	double x, y;
 };
 
-class Drawable{
-public:
-	virtual ~Drawable() {};
-	// virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr) const;
+struct Drawable {
+
+	Drawable(std::string nome) : 
+		nome(nome) {}
+
+	std::string nome;
 };
 
-class Point : public Drawable {
-public:
-	Point(Coordinate coordinate) :
-		coordinate(coordinate) {};
+struct Point : public Drawable {
+
+	Point(std::string nome, Coordinate coordinate) :
+		Drawable(nome), coordinate(coordinate) {}
 
 	Coordinate coordinate;
 };
 
-class Line : public Drawable {
-public:
-	Line(Coordinate coordinate_a, Coordinate coordinate_b) :
-		coordinate_a(coordinate_a), coordinate_b(coordinate_b)
-		{};
+struct Line : public Drawable {
+
+	Line(std::string nome, Coordinate coordinate_a, Coordinate coordinate_b) :
+		Drawable(nome), coordinate_a(coordinate_a), coordinate_b(coordinate_b)
+		{}
 
 	Coordinate coordinate_a, coordinate_b;
 };
 
-class Polygon : public Drawable {
-public:
-	Polygon(vector<Coordinate> coordinates) :
-		coordinates(coordinates)
-		{};
+struct Wireframe : public Drawable {
 
-	vector<Coordinate> coordinates;
+	Wireframe(std::string nome, std::vector<Coordinate> coordinates) :
+		Drawable(nome), coordinates(coordinates)
+		{}
 
-	// void draw(const Cairo::RefPtr<Cairo::Context>& cr) const{
+	std::vector<Coordinate> coordinates;
 
-	// }
 };
 
 #endif
