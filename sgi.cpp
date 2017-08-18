@@ -2,11 +2,12 @@
 
 #include <iostream>
 
-#include "add_line.h"
-#include "add_point.h"
+#include "add_object.h"
 
 SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     Gtk::Window(cobject), builder(refGlade) {
+
+    // auto refGlade = refGlade;
     
     builder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
     builder->get_widget("StepEntry", pStepEntry);
@@ -16,9 +17,7 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     builder->get_widget("DownButton", pDownButton);
     builder->get_widget("LeftButton", pLeftButton);
     builder->get_widget("RightButton", pRightButton);
-    builder->get_widget("addPointButton", addPointButton);
-    builder->get_widget("addLineButton", addLineButton);    
-    builder->get_widget("addWireframeButton",addWireframeButton);
+    builder->get_widget("AddObjectButton", pAddObjectButton);
     
     pViewportDrawingArea->signal_draw().connect(sigc::mem_fun(*this, &SGI::on_viewport_drawing_area_draw));
     pInButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_in_button_clicked));
@@ -27,9 +26,7 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     pDownButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_down_button_clicked));
     pLeftButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_left_button_clicked));
     pRightButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_right_button_clicked));
-    addPointButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_add_point_button_clicked));
-    addLineButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_add_line_button_clicked));
-    addWireframeButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_add_wireframe_button_clicked));
+    pAddObjectButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_add_object_button_clicked));
 
     // no construtor, valores dessas funções estão retornando 1
     // xVpMax = pViewportDrawingArea->get_allocation().get_width();
@@ -124,33 +121,17 @@ bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     return true;
 }
 
-void SGI::on_add_line_button_clicked()
+void SGI::on_add_object_button_clicked()
 {
-    AddLine *addLine;
-	Gtk::Builder::create_from_file("add_line.glade")->get_widget_derived("add_line", addLine);
-    addLine->setDisplayFile(&displayFile);
-	addLine->run();
+    AddObject *pAddObjectDialog;
+    Gtk::Builder::create_from_file("sgi.glade")->get_widget_derived("ObjectFormDialog", pAddObjectDialog);
+    pAddObjectDialog->setDisplayFile(&displayFile);
+
+    pAddObjectDialog->run();
 
     pViewportDrawingArea->queue_draw();
 
-    delete addLine;    
-}
-
-void SGI::on_add_point_button_clicked()
-{
-    AddPoint *addPoint;
-    Gtk::Builder::create_from_file("add_point.glade")->get_widget_derived("add_point", addPoint);
-    addPoint->setDisplayFile(&displayFile);
-    addPoint->run();
-
-    pViewportDrawingArea->queue_draw();
-
-    delete addPoint;    
-}
-
-void SGI::on_add_wireframe_button_clicked()
-{
-    // TODO
+    delete pAddObjectDialog; 
 }
 
 void SGI::draw_point(const Cairo::RefPtr<Cairo::Context>& cr, const Point &p)

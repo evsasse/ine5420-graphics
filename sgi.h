@@ -32,9 +32,7 @@ protected:
     Glib::RefPtr<Gtk::Builder> builder;
 	Gtk::DrawingArea* pViewportDrawingArea;
 	Gtk::Entry* pStepEntry;
-	Gtk::Button* addPointButton;
-	Gtk::Button* addLineButton;
-	Gtk::Button* addWireframeButton;
+	Gtk::Button* pAddObjectButton;
 	Gtk::Button* pUpButton;
 	Gtk::Button* pDownButton;
 	Gtk::Button* pLeftButton;
@@ -49,9 +47,7 @@ protected:
 	void on_in_button_clicked();
 	void on_out_button_clicked();
 	bool on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr);
-	void on_add_point_button_clicked();
-    void on_add_line_button_clicked();    
-    void on_add_wireframe_button_clicked();
+	void on_add_object_button_clicked();
 
     void draw_point(const Cairo::RefPtr<Cairo::Context>& cr, const Point &p);
 	void draw_line(const Cairo::RefPtr<Cairo::Context>& cr, const Line &l);
