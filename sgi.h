@@ -6,10 +6,24 @@
 #include <cairomm/context.h>
 
 #include <vector>
+#include <string>
 
 #include "drawable.h"
 
 #include "display_file.h"
+
+class ObjectColumnRecord : public Gtk::TreeModelColumnRecord
+{
+public:
+
+    ObjectColumnRecord() {
+        add(col_Name);
+        add(col_Type);
+    }
+
+    Gtk::TreeModelColumn<Glib::ustring> col_Name;
+    Gtk::TreeModelColumn<Glib::ustring> col_Type;
+};
 
 struct Rectangle
 {
@@ -38,7 +52,14 @@ protected:
 	Gtk::Button* pLeftButton;
 	Gtk::Button* pRightButton;
 	Gtk::Button* pInButton;
-	Gtk::Button* pOutButton;		
+	Gtk::Button* pOutButton;
+
+	Gtk::TreeView *pObjectTreeView;
+	ObjectColumnRecord objectColumnRecord;
+    Glib::RefPtr<Gtk::ListStore> pObjectListStore;
+
+    void refresh_list_store();
+    void add_row(std::string name, std::string type);
 
 	void on_up_button_clicked();
 	void on_down_button_clicked();

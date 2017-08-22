@@ -18,6 +18,12 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     builder->get_widget("LeftButton", pLeftButton);
     builder->get_widget("RightButton", pRightButton);
     builder->get_widget("AddObjectButton", pAddObjectButton);
+
+    builder->get_widget("ObjectTreeView", pObjectTreeView);
+    pObjectListStore = Gtk::ListStore::create(objectColumnRecord);
+    pObjectTreeView->set_model(pObjectListStore);
+    pObjectTreeView->append_column("Name", objectColumnRecord.col_Name);
+    pObjectTreeView->append_column("Type", objectColumnRecord.col_Type);
     
     pViewportDrawingArea->signal_draw().connect(sigc::mem_fun(*this, &SGI::on_viewport_drawing_area_draw));
     pInButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_in_button_clicked));
@@ -41,9 +47,9 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
 
     // objetos iniciais 
 
-    displayFile.points.push_back(Point("asd", Coordinate(20, 20)));
+    displayFile.points.push_back(Point("point", Coordinate(20, 20)));
 
-    displayFile.lines.push_back(Line("asd", Coordinate(150, 150), Coordinate(200, 250)));
+    displayFile.lines.push_back(Line("line", Coordinate(150, 150), Coordinate(200, 250)));
 
     std::vector<Coordinate> coordinates;
     coordinates.push_back(Coordinate(50, 50));
@@ -51,9 +57,33 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     coordinates.push_back(Coordinate(100, 100));
     coordinates.push_back(Coordinate(100, 50));
 
-    displayFile.wireframes.push_back(Wireframe("asd", coordinates));
+    displayFile.wireframes.push_back(Wireframe("wireframe", coordinates));
+
+    refresh_list_store();
 }
 
+void SGI::refresh_list_store()
+{
+    pObjectListStore->clear();
+
+    for (auto p : displayFile.points){
+        add_row(p.name, "Point");
+    }
+    for (auto p : displayFile.lines){
+        add_row(p.name, "Line");
+    }
+    for (auto p : displayFile.wireframes){
+        add_row(p.name, "Wireframe");
+    }
+}
+
+void SGI::add_row(std::string name, std::string type)
+{
+    Gtk::TreeModel::iterator iter = pObjectListStore->append();
+    Gtk::TreeModel::Row row = *iter;
+    row[objectColumnRecord.col_Name] = name;
+    row[objectColumnRecord.col_Type] = type;
+}
 void SGI::on_up_button_clicked()
 {
     window.yMin += 10;
@@ -128,6 +158,8 @@ void SGI::on_add_object_button_clicked()
     pAddObjectDialog->setDisplayFile(&displayFile);
 
     pAddObjectDialog->run();
+
+    refresh_list_store();
 
     pViewportDrawingArea->queue_draw();
 

@@ -14,24 +14,24 @@ struct Coordinate {
 
 struct Drawable {
 
-	Drawable(std::string nome) : 
-		nome(nome) {}
+	Drawable(std::string name) : 
+		name(name) {}
 
-	std::string nome;
+	std::string name;
 };
 
 struct Point : public Drawable {
 
-	Point(std::string nome, Coordinate coordinate) :
-		Drawable(nome), coordinate(coordinate) {}
+	Point(std::string name, Coordinate coordinate) :
+		Drawable(name), coordinate(coordinate) {}
 
 	Coordinate coordinate;
 };
 
 struct Line : public Drawable {
 
-	Line(std::string nome, Coordinate coordinate_a, Coordinate coordinate_b) :
-		Drawable(nome), coordinate_a(coordinate_a), coordinate_b(coordinate_b)
+	Line(std::string name, Coordinate coordinate_a, Coordinate coordinate_b) :
+		Drawable(name), coordinate_a(coordinate_a), coordinate_b(coordinate_b)
 		{}
 
 	Coordinate coordinate_a, coordinate_b;
@@ -39,8 +39,8 @@ struct Line : public Drawable {
 
 struct Wireframe : public Drawable {
 
-	Wireframe(std::string nome, std::vector<Coordinate> coordinates) :
-		Drawable(nome), coordinates(coordinates)
+	Wireframe(std::string name, std::vector<Coordinate> coordinates) :
+		Drawable(name), coordinates(coordinates)
 		{}
 
 	std::vector<Coordinate> coordinates;
