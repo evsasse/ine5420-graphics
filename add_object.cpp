@@ -1,6 +1,5 @@
 #include "add_object.h"
 
-#include <string>
 #include <iostream>
 
 #include "drawable.h"
@@ -13,12 +12,45 @@ Gtk::Dialog(cobject), builder(refGlade) {
 	builder->get_widget("OkButton", pOkButton);
 	builder->get_widget("CancelButton", pCancelButton);
 	builder->get_widget("Notebook", pNotebook);
-	pCoordinateListStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(builder->get_object("CoordinateListStore"));
 
-	pAddCoordButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::on_add_coord_button_clicked));
+	builder->get_widget("PointTreeView", pPointTreeView);
+	builder->get_widget("LineTreeView", pLineTreeView);
+	builder->get_widget("WireframeTreeView", pWireframeTreeView);
+	pCoordinateListStore = Gtk::ListStore::create(coordinateColumnRecord);
+	add_columns_to(pPointTreeView);
+	add_columns_to(pLineTreeView);
+	add_columns_to(pWireframeTreeView);
+
+	pAddCoordButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::add_new_coordinate));
 	pOkButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::on_ok_button_clicked));
 	pCancelButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::on_cancel_button_clicked));
 	pNotebook->signal_switch_page().connect(sigc::mem_fun(*this, &AddObject::on_switch_notebook_page));
+}
+
+void AddObject::add_columns_to(Gtk::TreeView *pTreeView){
+	pTreeView->set_model(pCoordinateListStore);
+	int x_col_pos = pTreeView->append_column_editable("X", coordinateColumnRecord.col_X);
+	int y_col_pos = pTreeView->append_column_editable("Y", coordinateColumnRecord.col_Y);
+
+	Gtk::TreeViewColumn* pXColumn = pTreeView->get_column(x_col_pos-1);
+	Gtk::CellRendererText* pXColumnRenderer = static_cast<Gtk::CellRendererText*>(pXColumn->get_first_cell());
+	pXColumn->add_attribute(pXColumnRenderer->property_editable(), coordinateColumnRecord.col_Available);
+	pXColumn->add_attribute(pXColumnRenderer->property_strikethrough(), coordinateColumnRecord.col_NotAvailable);
+	// pXColumn->add_attribute(pXColumnRenderer->property_visible(), coordinateColumnRecord.col_NotAvailable);
+
+	Gtk::TreeViewColumn* pYColumn = pTreeView->get_column(y_col_pos-1);
+	Gtk::CellRendererText* pYColumnRenderer = static_cast<Gtk::CellRendererText*>(pYColumn->get_first_cell());
+	pYColumn->add_attribute(pYColumnRenderer->property_editable(), coordinateColumnRecord.col_Available);
+	pYColumn->add_attribute(pYColumnRenderer->property_strikethrough(), coordinateColumnRecord.col_NotAvailable);
+}
+
+void AddObject::add_new_coordinate(){
+	Gtk::TreeModel::iterator iter = pCoordinateListStore->append();
+	Gtk::TreeModel::Row row = *iter;
+	row[coordinateColumnRecord.col_X] = 0;
+	row[coordinateColumnRecord.col_Y] = 0;
+
+	refresh_list_store_avaiable_rows();
 }
 
 int AddObject::run(){
@@ -39,13 +71,6 @@ void AddObject::on_switch_notebook_page(Gtk::Widget *page, int page_number){
 	refresh_list_store_avaiable_rows();
 }
 
-void AddObject::on_add_coord_button_clicked(){
-	auto row = *(pCoordinateListStore->append());
-	row.set_value(XXX, 0);
-	row.set_value(YYY, 0);
-	refresh_list_store_avaiable_rows();
-}
-
 void AddObject::refresh_list_store_avaiable_rows(){
 	auto current_tab = pNotebook->get_current_page();
 	auto n_avaiable = (current_tab == WIREFRAME) ? 9 : current_tab + 1;
@@ -57,8 +82,8 @@ void AddObject::refresh_list_store_avaiable_rows(){
 
 	  	bool avaiable = n_avaiable-- > 0;
 
-		row.set_value(NOT_AVAIABLE, !avaiable);
-		row.set_value(AVAIABLE, avaiable);
+	  	row[coordinateColumnRecord.col_Available] = avaiable;
+		row[coordinateColumnRecord.col_NotAvailable] = !avaiable;
 	}
 }
 
@@ -74,9 +99,8 @@ void AddObject::on_ok_button_clicked(){
 	{
 	  	auto row = *iter;
 
-	  	double x, y;
-	  	row.get_value(XXX, x);
-	  	row.get_value(YYY, y);
+	  	double x = row[coordinateColumnRecord.col_X];
+	  	double y = row[coordinateColumnRecord.col_Y];
 
 	  	Coordinate coord = Coordinate(x, y);
 
@@ -97,5 +121,3 @@ void AddObject::on_ok_button_clicked(){
 void AddObject::on_cancel_button_clicked(){
     response(1);
 }
-
-
