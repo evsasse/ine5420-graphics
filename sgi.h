@@ -7,47 +7,13 @@
 
 #include <vector>
 #include <string>
+#include <math.h>
 
 #include "drawable.h"
 
 #include "display_file.h"
 
-class ObjectColumnRecord : public Gtk::TreeModelColumnRecord
-{
-public:
-
-    ObjectColumnRecord() {
-        add(col_Name);
-        add(col_Type);
-    }
-
-    Gtk::TreeModelColumn<Glib::ustring> col_Name;
-    Gtk::TreeModelColumn<Glib::ustring> col_Type;
-};
-
-struct Rectangle
-{
-	Rectangle() : 
-		xMin(0), yMin(0), xMax(0), yMax(0) {}
-
-	Rectangle(double xMin, double yMin, double xMax, double yMax) : 
-		xMin(xMin), yMin(yMin), xMax(xMax), yMax(yMax) {}
-
-	double xMin, yMin, xMax, yMax; 		
-};
-
-struct Matrix {
-	Matrix() {
-		for (int i = 0; i < 3; ++i) {
-			for (int j = 0; j < 3; ++j) {
-				v[i][j] = 0;
-			}
-		} 
-	}
-
-	double v[3][3];
-};
-
+#include "structs.h"
 
 class SGI : public Gtk::Window {
 
@@ -91,7 +57,6 @@ protected:
     Point applyMatrixOnPoint(const Point &p, const Matrix &m);
     Line applyMatrixOnLine(const Line &l, const Matrix &m);
     Wireframe applyMatrixOnWireframe(const Wireframe &w, const Matrix &m);
-
 
 private:
 	DisplayFile displayFile;
