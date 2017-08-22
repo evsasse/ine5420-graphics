@@ -210,3 +210,35 @@ Coordinate SGI::mapToViewport(const Coordinate &c)
 
     return Coordinate(x, y);    
 }
+
+Coordinate SGI::applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m)
+{   
+    double x = c.x * m.v[0][0] + c.y * m.v[1][0] + m.v[2][0];
+    double y = c.x * m.v[0][1] + c.y * m.v[1][1] + m.v[2][1];
+
+    return Coordinate(x, y);
+}
+
+Point SGI::applyMatrixOnPoint(const Point &p, const Matrix &m) 
+{
+    return Point(p.name, applyMatrixOnCoordinate(p.coordinate, m));
+}
+
+Line SGI::applyMatrixOnLine(const Line &l, const Matrix &m)
+{
+    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
+    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
+
+    return Line(l.name, c1, c2);
+}
+
+Wireframe SGI::applyMatrixOnWireframe(const Wireframe &w, const Matrix &m)
+{
+    std::vector<Coordinate> coordinates;
+
+    for (int i = 0; i < w.coordinates.size(); ++i) {
+        coordinates.push_back(applyMatrixOnCoordinate(w.coordinates[i], m));
+    }
+
+    return Wireframe(w.name, coordinates);
+}

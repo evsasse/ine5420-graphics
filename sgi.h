@@ -27,13 +27,25 @@ public:
 
 struct Rectangle
 {
-	double xMin, yMin, xMax, yMax; 
-
 	Rectangle() : 
 		xMin(0), yMin(0), xMax(0), yMax(0) {}
 
 	Rectangle(double xMin, double yMin, double xMax, double yMax) : 
 		xMin(xMin), yMin(yMin), xMax(xMax), yMax(yMax) {}
+
+	double xMin, yMin, xMax, yMax; 		
+};
+
+struct Matrix {
+	Matrix() {
+		for (int i = 0; i < 3; ++i) {
+			for (int j = 0; j < 3; ++j) {
+				v[i][j] = 0;
+			}
+		} 
+	}
+
+	double v[3][3];
 };
 
 
@@ -73,8 +85,13 @@ protected:
     void draw_point(const Cairo::RefPtr<Cairo::Context>& cr, const Point &p);
 	void draw_line(const Cairo::RefPtr<Cairo::Context>& cr, const Line &l);
 	void draw_wireframe(const Cairo::RefPtr<Cairo::Context>& cr, const Wireframe &w);
-
+	
     Coordinate mapToViewport(const Coordinate &c);
+    Coordinate applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m);
+    Point applyMatrixOnPoint(const Point &p, const Matrix &m);
+    Line applyMatrixOnLine(const Line &l, const Matrix &m);
+    Wireframe applyMatrixOnWireframe(const Wireframe &w, const Matrix &m);
+
 
 private:
 	DisplayFile displayFile;
