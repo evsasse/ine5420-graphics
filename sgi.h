@@ -54,17 +54,26 @@ protected:
 	
     Coordinate mapToViewport(const Coordinate &c);
 
+    Coordinate centerOfLine(const Line &l);
+    Coordinate centerOfWireframe(const Wireframe &w);
+
     Coordinate applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m);
+    Line applyMatrixOnLine(const Line &l, const Matrix &m);
+    Wireframe applyMatrixOnWireframe(const Wireframe &w, const Matrix &m);
 
     Point translatePoint(const Point &p, double dx, double dy);
     Line translateLine(const Line &l, double dx, double dy);
     Wireframe translateWireframe(const Wireframe &w, double dx, double dy);
 
-    Point scalePoint(const Point &p, double sx, double sy);
     Line scaleLine(const Line &l, double sx, double sy);
     Wireframe scaleWireframe(const Wireframe &w, double sx, double sy);
 
-    Matrix multiplyMatrixes(const std::vector<Matrix> matrixes);
+    Line rotateLine(const Line &l, double degrees);
+    Line rotateLine(const Line &l, const Coordinate &c, double degrees);
+    Wireframe rotateWireframe(const Wireframe &w, double degrees);
+    Wireframe rotateWireframe(const Wireframe &w, const Coordinate &c, double degrees);
+
+    
 
 private:
 	DisplayFile displayFile;

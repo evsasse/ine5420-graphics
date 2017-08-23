@@ -53,12 +53,14 @@ struct Matrix {
 		return m;
     }
 
-    static Matrix rotation(double thetaDegrees) {
+    static Matrix rotation(double dx, double dy, double degrees) {
     	Matrix m;
-    	m.v[0][0] = cos(thetaDegrees*M_PI/180);
-    	m.v[0][1] = -sin(thetaDegrees*M_PI/180);
-    	m.v[1][0] = sin(thetaDegrees*M_PI/180);
-    	m.v[1][1] = cos(thetaDegrees*M_PI/180);
+    	m.v[0][0] = cos(degrees*M_PI/180);
+    	m.v[0][1] = -sin(degrees*M_PI/180);
+    	m.v[1][0] = sin(degrees*M_PI/180);
+    	m.v[1][1] = cos(degrees*M_PI/180);
+    	m.v[2][0] = -dx * cos(degrees*M_PI/180) - dy * sin(degrees*M_PI/180) + dx;
+    	m.v[2][1] = dx * sin(degrees*M_PI/180) - dy * cos(degrees*M_PI/180) + dy;
 		return m;
     }
 

@@ -55,6 +55,7 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     Line l("asd", Coordinate(0, 0), Coordinate(50, 50));
     displayFile.lines.push_back(scaleLine(l, 2, 2));
 
+    displayFile.lines.push_back(rotateLine(l, 90));
 
     std::vector<Coordinate> coordinates;
     coordinates.push_back(Coordinate(100, 100));
@@ -64,7 +65,16 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
 
     Wireframe w("wireframe", coordinates);
 
-    displayFile.wireframes.push_back(scaleWireframe(w, 2, 2));
+    displayFile.wireframes.push_back(w);
+
+    // rotacao no centro do mundo
+    displayFile.wireframes.push_back(rotateWireframe(w, Coordinate(0, 0), 30));
+
+    // rotacao no centro do objeto
+    displayFile.wireframes.push_back(scaleWireframe(rotateWireframe(w, 30), 2, 2));
+
+    // rotacao em ponto qualquer
+    displayFile.wireframes.push_back(rotateWireframe(w, Coordinate(200, 200), 30));
 
     refresh_list_store();
 }
@@ -218,62 +228,15 @@ Coordinate SGI::mapToViewport(const Coordinate &c)
     return Coordinate(x, y);    
 }
 
-Coordinate SGI::applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m)
-{   
-    double x = c.x * m.v[0][0] + c.y * m.v[1][0] + m.v[2][0];
-    double y = c.x * m.v[0][1] + c.y * m.v[1][1] + m.v[2][1];
-
-    return Coordinate(x, y);
-}
-
-Point SGI::translatePoint(const Point &p, double dx, double dy)
-{
-    return Point(p.name, applyMatrixOnCoordinate(p.coordinate, Matrix::translation(dx, dy)));
-
-}
-
-Line SGI::translateLine(const Line &l, double dx, double dy)
-{
-    Matrix m = Matrix::translation(dx, dy);
-
-    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
-    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
-
-    return Line(l.name, c1, c2);
-}
-
-Wireframe SGI::translateWireframe(const Wireframe &w, double dx, double dy)
-{
-    Matrix m = Matrix::translation(dx, dy);
-
-    std::vector<Coordinate> coordinates;
-
-    for (int i = 0; i < w.coordinates.size(); ++i) {
-        coordinates.push_back(applyMatrixOnCoordinate(w.coordinates[i], m));
-    }
-
-    return Wireframe(w.name, coordinates);
-}
-
-Point SGI::scalePoint(const Point &p, double sx, double sy)
-{
-    return p;
-}
-
-Line SGI::scaleLine(const Line &l, double sx, double sy)
+Coordinate SGI::centerOfLine(const Line &l)
 {
     double cx = (l.coordinate_a.x + l.coordinate_b.x) / 2;
     double cy = (l.coordinate_a.x + l.coordinate_b.x) / 2;
 
-    Matrix m = Matrix::scaling(cx, cy, sx, sy);    
-
-    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
-    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
-
-    return Line(l.name, c1, c2);
+    return Coordinate(cx, cy);
 }
 
-Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
+Coordinate SGI::centerOfWireframe(const Wireframe &w)
 {
     double cx = 0;
     double cy = 0;
@@ -286,8 +249,27 @@ Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
     cx /= w.coordinates.size();
     cy /= w.coordinates.size();
 
-    Matrix m = Matrix::scaling(cx, cy, sx, sy);
+    return Coordinate(cx, cy);
+}
 
+Coordinate SGI::applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m)
+{   
+    double x = c.x * m.v[0][0] + c.y * m.v[1][0] + m.v[2][0];
+    double y = c.x * m.v[0][1] + c.y * m.v[1][1] + m.v[2][1];
+
+    return Coordinate(x, y);
+}
+
+Line SGI::applyMatrixOnLine(const Line &l, const Matrix &m)
+{
+    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
+    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
+
+    return Line(l.name, c1, c2);
+}
+
+Wireframe SGI::applyMatrixOnWireframe(const Wireframe &w, const Matrix &m)
+{
     std::vector<Coordinate> coordinates;
 
     for (int i = 0; i < w.coordinates.size(); ++i) {
@@ -297,11 +279,51 @@ Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
     return Wireframe(w.name, coordinates);
 }
 
-Matrix SGI::multiplyMatrixes(const std::vector<Matrix> matrixes)
+Point SGI::translatePoint(const Point &p, double dx, double dy)
 {
-    // TODO
+    return Point(p.name, applyMatrixOnCoordinate(p.coordinate, Matrix::translation(dx, dy)));
+}
 
-    Matrix result;
+Line SGI::translateLine(const Line &l, double dx, double dy)
+{
+    return applyMatrixOnLine(l, Matrix::translation(dx, dy));
+}
 
-    return result;
+Wireframe SGI::translateWireframe(const Wireframe &w, double dx, double dy)
+{
+    return applyMatrixOnWireframe(w, Matrix::translation(dx, dy));
+}
+
+Line SGI::scaleLine(const Line &l, double sx, double sy)
+{
+    Coordinate center = centerOfLine(l);
+
+    return applyMatrixOnLine(l, Matrix::scaling(center.x, center.y, sx, sy));
+}
+
+Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
+{
+    Coordinate center = centerOfWireframe(w);
+
+    return applyMatrixOnWireframe(w, Matrix::scaling(center.x, center.y, sx, sy));
+}
+
+Line SGI::rotateLine(const Line &l, double degrees)
+{
+    return rotateLine(l, centerOfLine(l), degrees);
+}
+
+Line SGI::rotateLine(const Line &l, const Coordinate &c, double degrees)
+{
+    return applyMatrixOnLine(l, Matrix::rotation(c.x, c.y, degrees));
+}
+
+Wireframe SGI::rotateWireframe(const Wireframe &w, double degrees)
+{
+    return rotateWireframe(w, centerOfWireframe(w), degrees);
+}
+
+Wireframe SGI::rotateWireframe(const Wireframe &w, const Coordinate &c, double degrees)
+{
+    return applyMatrixOnWireframe(w, Matrix::rotation(c.x, c.y, degrees));
 }
