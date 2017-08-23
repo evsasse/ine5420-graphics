@@ -47,9 +47,14 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
 
     // objetos iniciais 
 
-    displayFile.points.push_back(translatePoint(Point("point", Coordinate(20, 20)), 0, 100));
+    displayFile.points.push_back(translatePoint(Point("point", Coordinate(80, 80)), 0, 0));
+    displayFile.points.push_back(translatePoint(Point("point", Coordinate(-30, -30)), 0, 0));
 
-    displayFile.lines.push_back(Line("line", Coordinate(170, 170), Coordinate(220, 270)));
+    //displayFile.lines.push_back(Line("line", Coordinate(170, 170), Coordinate(220, 270)));
+
+    Line l("asd", Coordinate(0, 0), Coordinate(50, 50));
+    displayFile.lines.push_back(scaleLine(l, 2, 2));
+
 
     std::vector<Coordinate> coordinates;
     coordinates.push_back(Coordinate(100, 100));
@@ -57,7 +62,9 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     coordinates.push_back(Coordinate(150, 150));
     coordinates.push_back(Coordinate(150, 100));
 
-    displayFile.wireframes.push_back(Wireframe("wireframe", coordinates));
+    Wireframe w("wireframe", coordinates);
+
+    displayFile.wireframes.push_back(scaleWireframe(w, 2, 2));
 
     refresh_list_store();
 }
@@ -250,29 +257,44 @@ Wireframe SGI::translateWireframe(const Wireframe &w, double dx, double dy)
 
 Point SGI::scalePoint(const Point &p, double sx, double sy)
 {
-    //Point result = translatePoint(p, -p.coordinate.x, -p.coordinate.y);
-    //result.coordinate = applyMatrixOnCoordinate(result.coordinate, Matrix::scaling(sx, sy));
-    
-    //return translatePoint(result, p.coordinate.x, p.coordinate.y);
-
-    // TODO
-
-    return p;
-
-}
-
-Line SGI::scaleLine(const Line &p, double sx, double sy)
-{
-    // TODO
-
     return p;
 }
 
-Wireframe SGI::scaleWireframe(const Wireframe &p, double sx, double sy)
+Line SGI::scaleLine(const Line &l, double sx, double sy)
 {
-    // TODO
+    double cx = (l.coordinate_a.x + l.coordinate_b.x) / 2;
+    double cy = (l.coordinate_a.x + l.coordinate_b.x) / 2;
 
-    return p;
+    Matrix m = Matrix::scaling(cx, cy, sx, sy);    
+
+    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
+    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
+
+    return Line(l.name, c1, c2);
+}
+
+Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
+{
+    double cx = 0;
+    double cy = 0;
+
+    for (int i = 0; i < w.coordinates.size(); ++i) {
+        cx += w.coordinates[i].x;
+        cy += w.coordinates[i].y;
+    }
+
+    cx /= w.coordinates.size();
+    cy /= w.coordinates.size();
+
+    Matrix m = Matrix::scaling(cx, cy, sx, sy);
+
+    std::vector<Coordinate> coordinates;
+
+    for (int i = 0; i < w.coordinates.size(); ++i) {
+        coordinates.push_back(applyMatrixOnCoordinate(w.coordinates[i], m));
+    }
+
+    return Wireframe(w.name, coordinates);
 }
 
 Matrix SGI::multiplyMatrixes(const std::vector<Matrix> matrixes)

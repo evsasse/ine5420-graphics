@@ -43,10 +43,13 @@ struct Matrix {
 		return m;
 	}
 
-    static Matrix scaling(double sx, double sy) {
+    static Matrix scaling(double cx, double cy, double sx, double sy) {
     	Matrix m;
-    	m.v[0][0] = sx;
-    	m.v[1][1] = sy;
+		m.v[0][0] = sx;
+	    m.v[1][1] = sy;
+	    m.v[2][2] = 1;
+	    m.v[2][0] = - cx * sx + cx;
+	    m.v[2][1] = - cy * sy + cy;
 		return m;
     }
 
