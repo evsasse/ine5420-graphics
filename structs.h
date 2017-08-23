@@ -36,21 +36,21 @@ struct Matrix {
 		} 
 	}
 
-	Matrix translation(double dx, double dy) {
+	static Matrix translation(double dx, double dy) {
 		Matrix m;
 		m.v[2][0] = dx;
 		m.v[2][1] = dy;
 		return m;
 	}
 
-    Matrix scaling(double sx, double sy) {
+    static Matrix scaling(double sx, double sy) {
     	Matrix m;
     	m.v[0][0] = sx;
     	m.v[1][1] = sy;
 		return m;
     }
 
-    Matrix rotation(double thetaDegrees) {
+    static Matrix rotation(double thetaDegrees) {
     	Matrix m;
     	m.v[0][0] = cos(thetaDegrees*M_PI/180);
     	m.v[0][1] = -sin(thetaDegrees*M_PI/180);
