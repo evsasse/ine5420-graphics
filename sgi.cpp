@@ -1,16 +1,17 @@
 #include "sgi.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "add_object.h"
 
 SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     Gtk::Window(cobject), builder(refGlade) {
 
-    // auto refGlade = refGlade;
-    
     builder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
     builder->get_widget("StepEntry", pStepEntry);
+    builder->get_widget("RotateXEntry", pRotateXEntry);
+    builder->get_widget("RotateYEntry", pRotateYEntry);
     builder->get_widget("InButton", pInButton);
     builder->get_widget("OutButton", pOutButton);    
     builder->get_widget("UpButton", pUpButton);
@@ -18,9 +19,15 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     builder->get_widget("LeftButton", pLeftButton);
     builder->get_widget("RightButton", pRightButton);
     builder->get_widget("AddObjectButton", pAddObjectButton);
+    builder->get_widget("SelectWindowButton", pSelectWindowButton);
+    builder->get_widget("TurnLeftButton", pTurnLeftButton);
+    builder->get_widget("TurnRightButton", pTurnRightButton);
+    builder->get_widget("WorldRotateButton", pWorldRotateButton);
+    builder->get_widget("ObjectRotateButton", pObjectRotateButton);
 
     builder->get_widget("ObjectTreeView", pObjectTreeView);
     pObjectListStore = Gtk::ListStore::create(objectColumnRecord);
+    pObjectTreeSelection = pObjectTreeView->get_selection();
     pObjectTreeView->set_model(pObjectListStore);
     pObjectTreeView->append_column("Name", objectColumnRecord.col_Name);
     pObjectTreeView->append_column("Type", objectColumnRecord.col_Type);
@@ -33,50 +40,122 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     pLeftButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_left_button_clicked));
     pRightButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_right_button_clicked));
     pAddObjectButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_add_object_button_clicked));
-
-    // no construtor, valores dessas funções estão retornando 1
-    // xVpMax = pViewportDrawingArea->get_allocation().get_width();
-    // yVpMax = pViewportDrawingArea->get_allocation().get_height();
-    // por enquanto window inicia hardcoded
-
-    xVpMax = 408;
-    yVpMax = 447;
-
-    window.xMax = 408;
-    window.yMax = 447;
+    pSelectWindowButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_select_window_button_clicked));
+    pTurnLeftButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_turn_left_button_clicked));
+    pTurnRightButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_turn_right_button_clicked));
+    pWorldRotateButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_world_rotate_button_clicked));
+    pObjectRotateButton->signal_clicked().connect(sigc::mem_fun(*this, &SGI::on_object_rotate_button_clicked));
 
     // objetos iniciais 
+    Point* p = new Point("point", Coordinate(80, 80));
+    displayFile.points.push_back(p);
+    p->translate(10, 10);
+    displayFile.points.push_back(p);
 
-    displayFile.points.push_back(translatePoint(Point("point", Coordinate(80, 80)), 0, 0));
-    displayFile.points.push_back(translatePoint(Point("point", Coordinate(-30, -30)), 0, 0));
-
-    //displayFile.lines.push_back(Line("line", Coordinate(170, 170), Coordinate(220, 270)));
-
-    Line l("asd", Coordinate(0, 0), Coordinate(50, 50));
-    displayFile.lines.push_back(scaleLine(l, 2, 2));
-
-    displayFile.lines.push_back(rotateLine(l, 90));
+    Line* l = new Line("line", Coordinate(50, 50), Coordinate(150, 100));
+    displayFile.lines.push_back(l);
+    l->translate(10, 10);
+    displayFile.lines.push_back(l);
+    l->translate(10, 10);
+    l->rotate(45);
+    displayFile.lines.push_back(l);
+    l->translate(10, 10);
+    l->scale(2, 2);
+    displayFile.lines.push_back(l);
 
     std::vector<Coordinate> coordinates;
     coordinates.push_back(Coordinate(100, 100));
     coordinates.push_back(Coordinate(100, 150));
     coordinates.push_back(Coordinate(150, 150));
     coordinates.push_back(Coordinate(150, 100));
-
-    Wireframe w("wireframe", coordinates);
-
+    Wireframe* w = new Wireframe("wireframe", coordinates);
+    displayFile.wireframes.push_back(w);
+    w->translate(10,10);
+    displayFile.wireframes.push_back(w);
+    w->translate(10,10);
+    w->rotate(45);
+    displayFile.wireframes.push_back(w);
+    w->translate(10,10);
+    w->scale(2, 2);
     displayFile.wireframes.push_back(w);
 
-    // rotacao no centro do mundo
-    displayFile.wireframes.push_back(rotateWireframe(w, Coordinate(0, 0), 30));
+    l = new Line("line2", Coordinate(350, 350), Coordinate(400, 400));
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
+    l->rotate(20);
+    displayFile.lines.push_back(l);
 
-    // rotacao no centro do objeto
-    displayFile.wireframes.push_back(scaleWireframe(rotateWireframe(w, 30), 2, 2));
-
-    // rotacao em ponto qualquer
-    displayFile.wireframes.push_back(rotateWireframe(w, Coordinate(200, 200), 30));
+    coordinates = std::vector<Coordinate>();
+    coordinates.push_back(Coordinate(300, 300));
+    coordinates.push_back(Coordinate(320, 300));
+    coordinates.push_back(Coordinate(310, 320));
+    w = new Wireframe("wireframe2", coordinates);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
+    w->rotate(l->center(), 30);
+    displayFile.wireframes.push_back(w);
 
     refresh_list_store();
+
+    window.xMax = 591;
+    window.yMax = 597;
+}
+
+double SGI::get_step_size()
+{
+    try {
+        return std::stod(pStepEntry->get_buffer()->get_text());
+    } catch (...) {
+        std::cout << "Step size is invalid" << std::endl;
+        return 0;
+    }
+}
+
+Drawable* SGI::get_selected_object()
+{
+    Gtk::ListStore::iterator iter = pObjectTreeSelection->get_selected();
+
+    if(iter) {
+        Gtk::ListStore::Row row = *iter;
+
+        Drawable *object = row[objectColumnRecord.col_Object];
+
+        return object;
+    }
+
+    return nullptr;
 }
 
 void SGI::refresh_list_store()
@@ -84,88 +163,134 @@ void SGI::refresh_list_store()
     pObjectListStore->clear();
 
     for (auto p : displayFile.points){
-        add_row(p.name, "Point");
+        add_row(p->name, "Point", p);
     }
     for (auto p : displayFile.lines){
-        add_row(p.name, "Line");
+        add_row(p->name, "Line", p);
     }
     for (auto p : displayFile.wireframes){
-        add_row(p.name, "Wireframe");
+        add_row(p->name, "Wireframe", p);
     }
 }
 
-void SGI::add_row(std::string name, std::string type)
+void SGI::add_row(std::string name, std::string type, Drawable* object)
 {
     Gtk::TreeModel::iterator iter = pObjectListStore->append();
     Gtk::TreeModel::Row row = *iter;
     row[objectColumnRecord.col_Name] = name;
     row[objectColumnRecord.col_Type] = type;
+    row[objectColumnRecord.col_Object] = object;
 }
+
 void SGI::on_up_button_clicked()
 {
-    window.yMin += 10;
-    window.yMax += 10;
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        (*object).translate(0, 10);
+    } else {
+        window.yMin += 10;
+        window.yMax += 10;
+    }
 
     pViewportDrawingArea->queue_draw();
 }
 
 void SGI::on_down_button_clicked()
 {
-    window.yMin -= 10;
-    window.yMax -= 10;
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        (*object).translate(0, -10);
+    } else {
+        window.yMin -= 10;
+        window.yMax -= 10;
+    }
 
     pViewportDrawingArea->queue_draw();
 }
 
 void SGI::on_left_button_clicked()
 {
-    window.xMin -= 10;
-    window.xMax -= 10;
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        (*object).translate(-10, 0);
+    } else {
+        window.xMin -= 10;
+        window.xMax -= 10;
+    }
 
     pViewportDrawingArea->queue_draw();
 }
 
 void SGI::on_right_button_clicked()
 {
-    window.xMin += 10;
-    window.xMax += 10;
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        (*object).translate(10, 0);
+    } else {
+        window.xMin += 10;
+        window.xMax += 10;
+    }
 
     pViewportDrawingArea->queue_draw();
 }
 
 void SGI::on_in_button_clicked()
 {
-    window.xMax /= 1 + std::stod(pStepEntry->get_buffer()->get_text()) / 100.0;
-    window.yMax /= 1 + std::stod(pStepEntry->get_buffer()->get_text()) / 100.0;
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        (*object).scale(1.1, 1.1);
+    } else {
+        window.xMax /= 1 + get_step_size() / 100.0;
+        window.yMax /= 1 + get_step_size() / 100.0;
+    }
 
     pViewportDrawingArea->queue_draw();
 }
 
 void SGI::on_out_button_clicked()
 {
-    window.xMax *= 1 + std::stod(pStepEntry->get_buffer()->get_text()) / 100.0;
-    window.yMax *= 1 + std::stod(pStepEntry->get_buffer()->get_text()) / 100.0;
+    Drawable* object = get_selected_object();
 
+    if(object) {
+        (*object).scale(0.9, 0.9);
+    } else {
+        window.xMax *= 1 + get_step_size() / 100.0;
+        window.yMax *= 1 + get_step_size() / 100.0;
+    }
+    
     pViewportDrawingArea->queue_draw();
 }
 
 bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
-{ 
+{
+    xVpMax = pViewportDrawingArea->get_allocation().get_width();
+    yVpMax = pViewportDrawingArea->get_allocation().get_height();
+
     for (auto p : displayFile.points) {
-        draw_point(cr, p);
+        draw_point(cr, *p);
     }
 
     for (auto l : displayFile.lines) {
-        draw_line(cr, l);
+        draw_line(cr, *l);
     }
 
     for (auto w : displayFile.wireframes) {
-        draw_wireframe(cr, w);
+        draw_wireframe(cr, *w);
     }
 
     cr->stroke();
 
     return true;
+}
+
+void SGI::on_select_window_button_clicked()
+{
+    pObjectTreeSelection->unselect_all();
 }
 
 void SGI::on_add_object_button_clicked()
@@ -180,7 +305,77 @@ void SGI::on_add_object_button_clicked()
 
     pViewportDrawingArea->queue_draw();
 
-    delete pAddObjectDialog; 
+    delete pAddObjectDialog;
+}
+
+Coordinate SGI::get_rotate_coordinate()
+{
+    double x, y;
+
+    try {
+        x = std::stod(pRotateXEntry->get_buffer()->get_text());
+    } catch (...) {
+        std::cout << "X is invalid" << std::endl;
+        x =  0;
+    }
+
+    try {
+        y = std::stod(pRotateYEntry->get_buffer()->get_text());
+    } catch (...) {
+        std::cout << "X is invalid" << std::endl;
+        y =  0;
+    }
+
+    return Coordinate(x, y);  
+}
+
+void SGI::set_rotate_coordinate(Coordinate coordinate)
+{
+    std::ostringstream strs_x;
+    strs_x << coordinate.x;
+    std::string str_x = strs_x.str();
+    pRotateXEntry->set_text(str_x);
+
+    std::ostringstream strs_y;
+    strs_y << coordinate.y;
+    std::string str_y = strs_y.str();
+    pRotateYEntry->set_text(str_y);
+}
+
+void SGI::on_turn_left_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        object->rotate(get_rotate_coordinate(), -10);
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_turn_right_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        object->rotate(get_rotate_coordinate(), 10);
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_world_rotate_button_clicked()
+{
+    set_rotate_coordinate(Coordinate(0, 0));
+}
+
+void SGI::on_object_rotate_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if(object) {
+        set_rotate_coordinate(object->center());
+    }
 }
 
 void SGI::draw_point(const Cairo::RefPtr<Cairo::Context>& cr, const Point &p)
@@ -226,104 +421,4 @@ Coordinate SGI::mapToViewport(const Coordinate &c)
     double y = (1 - (c.y - window.yMin)  / (window.yMax - window.yMin)) * yVpMax;
 
     return Coordinate(x, y);    
-}
-
-Coordinate SGI::centerOfLine(const Line &l)
-{
-    double cx = (l.coordinate_a.x + l.coordinate_b.x) / 2;
-    double cy = (l.coordinate_a.x + l.coordinate_b.x) / 2;
-
-    return Coordinate(cx, cy);
-}
-
-Coordinate SGI::centerOfWireframe(const Wireframe &w)
-{
-    double cx = 0;
-    double cy = 0;
-
-    for (int i = 0; i < w.coordinates.size(); ++i) {
-        cx += w.coordinates[i].x;
-        cy += w.coordinates[i].y;
-    }
-
-    cx /= w.coordinates.size();
-    cy /= w.coordinates.size();
-
-    return Coordinate(cx, cy);
-}
-
-Coordinate SGI::applyMatrixOnCoordinate(const Coordinate &c, const Matrix &m)
-{   
-    double x = c.x * m.v[0][0] + c.y * m.v[1][0] + m.v[2][0];
-    double y = c.x * m.v[0][1] + c.y * m.v[1][1] + m.v[2][1];
-
-    return Coordinate(x, y);
-}
-
-Line SGI::applyMatrixOnLine(const Line &l, const Matrix &m)
-{
-    Coordinate c1 = applyMatrixOnCoordinate(l.coordinate_a, m);
-    Coordinate c2 = applyMatrixOnCoordinate(l.coordinate_b, m);
-
-    return Line(l.name, c1, c2);
-}
-
-Wireframe SGI::applyMatrixOnWireframe(const Wireframe &w, const Matrix &m)
-{
-    std::vector<Coordinate> coordinates;
-
-    for (int i = 0; i < w.coordinates.size(); ++i) {
-        coordinates.push_back(applyMatrixOnCoordinate(w.coordinates[i], m));
-    }
-
-    return Wireframe(w.name, coordinates);
-}
-
-Point SGI::translatePoint(const Point &p, double dx, double dy)
-{
-    return Point(p.name, applyMatrixOnCoordinate(p.coordinate, Matrix::translation(dx, dy)));
-}
-
-Line SGI::translateLine(const Line &l, double dx, double dy)
-{
-    return applyMatrixOnLine(l, Matrix::translation(dx, dy));
-}
-
-Wireframe SGI::translateWireframe(const Wireframe &w, double dx, double dy)
-{
-    return applyMatrixOnWireframe(w, Matrix::translation(dx, dy));
-}
-
-Line SGI::scaleLine(const Line &l, double sx, double sy)
-{
-    Coordinate center = centerOfLine(l);
-
-    return applyMatrixOnLine(l, Matrix::scaling(center.x, center.y, sx, sy));
-}
-
-Wireframe SGI::scaleWireframe(const Wireframe &w, double sx, double sy)
-{
-    Coordinate center = centerOfWireframe(w);
-
-    return applyMatrixOnWireframe(w, Matrix::scaling(center.x, center.y, sx, sy));
-}
-
-Line SGI::rotateLine(const Line &l, double degrees)
-{
-    return rotateLine(l, centerOfLine(l), degrees);
-}
-
-Line SGI::rotateLine(const Line &l, const Coordinate &c, double degrees)
-{
-    return applyMatrixOnLine(l, Matrix::rotation(c.x, c.y, degrees));
-}
-
-Wireframe SGI::rotateWireframe(const Wireframe &w, double degrees)
-{
-    return rotateWireframe(w, centerOfWireframe(w), degrees);
-}
-
-Wireframe SGI::rotateWireframe(const Wireframe &w, const Coordinate &c, double degrees)
-{
-    return applyMatrixOnWireframe(w, Matrix::rotation(c.x, c.y, degrees));
 }

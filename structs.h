@@ -5,17 +5,6 @@
 
 #include <math.h>
 
-struct ObjectColumnRecord : public Gtk::TreeModelColumnRecord
-{
-    ObjectColumnRecord() {
-        add(col_Name);
-        add(col_Type);
-    }
-
-    Gtk::TreeModelColumn<Glib::ustring> col_Name;
-    Gtk::TreeModelColumn<Glib::ustring> col_Type;
-};
-
 struct Rectangle
 {
 	Rectangle() : 
