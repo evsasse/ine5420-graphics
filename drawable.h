@@ -11,7 +11,11 @@ struct Coordinate {
 	Coordinate(double x, double y) :
 		x(x), y(y) {}
 
+	// world coordinates
 	double x, y;
+
+	// window coordinates, are calculated as needed.
+	double u, v;
 
 	Coordinate applyMatrix(const Matrix &m) const;
 };

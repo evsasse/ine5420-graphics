@@ -3,9 +3,6 @@
 #include <gtkmm.h>
 #include <cairomm/context.h>
 
-//#include "drawable.h"
-//#include "viewport.h"
-
 #include "sgi.h"
 
 using namespace std;
