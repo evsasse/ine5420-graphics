@@ -6,9 +6,7 @@
 #include "drawable.h"
 
 struct DisplayFile {
-	std::vector<Point*> points;
-	std::vector<Line*> lines;
-	std::vector<Wireframe*> wireframes;
+	std::vector<Drawable*> drawables;
 };
 
 #endif /* DISPLAYFILE_H_ */

@@ -108,11 +108,11 @@ void AddObject::on_ok_button_clicked(){
 	}
 
 	if(current_tab == POINT){
-		pDisplayFile->points.push_back(new Point(name, coordinates[0]));
+		pDisplayFile->drawables.push_back(new Point(name, coordinates[0]));
 	} else if (current_tab == LINE){
-		pDisplayFile->lines.push_back(new Line(name, coordinates[0], coordinates[1]));
+		pDisplayFile->drawables.push_back(new Line(name, coordinates[0], coordinates[1]));
 	} else {
-		pDisplayFile->wireframes.push_back(new Wireframe(name, coordinates));
+		pDisplayFile->drawables.push_back(new Wireframe(name, coordinates));
 	}
 
 	response(0);

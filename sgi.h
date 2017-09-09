@@ -62,19 +62,19 @@ protected:
     void refresh_list_store();
     void add_row(std::string name, std::string type, Drawable* object);
 
-    double get_step_size();
     Drawable* get_selected_object();
+    double get_step_size();
     Coordinate get_rotate_coordinate();
+    void set_rotate_coordinate(Coordinate coordinate);    
 
-    void set_rotate_coordinate(Coordinate coordinate);
+ 	bool on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 
 	void on_up_button_clicked();
 	void on_down_button_clicked();
 	void on_left_button_clicked();
 	void on_right_button_clicked();
 	void on_in_button_clicked();
-	void on_out_button_clicked();
-	bool on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr);
+	void on_out_button_clicked();	
 	void on_add_object_button_clicked();
 	void on_select_window_button_clicked();
 	void on_turn_left_button_clicked();
@@ -82,13 +82,7 @@ protected:
 	void on_world_rotate_button_clicked();
 	void on_window_rotate_button_clicked();
 	void on_object_rotate_button_clicked();
-
-    void draw_point(const Cairo::RefPtr<Cairo::Context>& cr, const Point &p);
-	void draw_line(const Cairo::RefPtr<Cairo::Context>& cr, const Line &l);
-	void draw_wireframe(const Cairo::RefPtr<Cairo::Context>& cr, const Wireframe &w);
 	
-    Coordinate mapToViewport(const Coordinate &c);
-
 private:
 	DisplayFile displayFile;
 	Rectangle window;

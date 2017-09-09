@@ -10,6 +10,14 @@ Coordinate Coordinate::applyMatrix(const Matrix &m) const
     return Coordinate(new_x, new_y);
 }
 
+Coordinate Coordinate::mapToViewport(const Rectangle window, double xVpMax, double yVpMax)
+{
+    double new_x = (x - window.xMin) * xVpMax / (window.xMax - window.xMin);
+    double new_y = (1 - (y - window.yMin)  / (window.yMax - window.yMin)) * yVpMax;
+
+    return Coordinate(new_x, new_y);    
+}
+
 
 
 void Drawable::translate(double dx, double dy)
@@ -35,9 +43,23 @@ void Drawable::rotate(Coordinate c, double deg)
 
 
 
-void Point::draw()
+std::string Point::type()
 {
+	return "Point";
+}
 
+void Point::draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax)
+{
+	auto vpCoordinate = coordinate.mapToViewport(window, xVpMax, yVpMax);
+
+    double x = vpCoordinate.x;
+    double y = vpCoordinate.y;
+
+    cr->move_to(x-2, y-2);
+    cr->line_to(x+2, y-2);
+    cr->line_to(x+2, y+2);
+    cr->line_to(x-2, y+2);
+    cr->fill();
 }
 
 Coordinate Point::center()
@@ -52,9 +74,18 @@ void Point::applyMatrix(const Matrix &m)
 
 
 
-void Line::draw()
+std::string Line::type()
 {
-	
+	return "Line";
+}
+
+void Line::draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax)
+{
+	auto vpCoordinate_a = coordinate_a.mapToViewport(window, xVpMax, yVpMax);
+    auto vpCoordinate_b = coordinate_b.mapToViewport(window, xVpMax, yVpMax);
+
+    cr->move_to(vpCoordinate_a.x, vpCoordinate_a.y);
+    cr->line_to(vpCoordinate_b.x, vpCoordinate_b.y);
 }
 
 Coordinate Line::center()
@@ -73,9 +104,23 @@ void Line::applyMatrix(const Matrix &m)
 
 
 
-void Wireframe::draw()
+std::string Wireframe::type()
 {
-	
+	return "Wireframe";
+}
+
+void Wireframe::draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax)
+{
+	auto firstVpCoordinate = coordinates[0].mapToViewport(window, xVpMax, yVpMax);
+
+    cr->move_to(firstVpCoordinate.x, firstVpCoordinate.y);
+
+    for (int i = 1; i < coordinates.size(); ++i) {
+        auto vpCoordinate = coordinates[i].mapToViewport(window, xVpMax, yVpMax);
+        cr->line_to(vpCoordinate.x, vpCoordinate.y);
+    }
+
+    cr->line_to(firstVpCoordinate.x, firstVpCoordinate.y);
 }
 
 Coordinate Wireframe::center()
