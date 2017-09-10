@@ -43,14 +43,27 @@ struct Matrix {
     }
 
     static Matrix rotation(double dx, double dy, double degrees) {
-    	Matrix m;
-    	m.v[0][0] = cos(degrees*M_PI/180);
-    	m.v[0][1] = -sin(degrees*M_PI/180);
-    	m.v[1][0] = sin(degrees*M_PI/180);
-    	m.v[1][1] = cos(degrees*M_PI/180);
-    	m.v[2][0] = -dx * cos(degrees*M_PI/180) - dy * sin(degrees*M_PI/180) + dx;
-    	m.v[2][1] = dx * sin(degrees*M_PI/180) - dy * cos(degrees*M_PI/180) + dy;
+    	double radians = degrees*M_PI/180;
+    	Matrix m;    	
+    	m.v[0][0] = cos(radians);
+    	m.v[0][1] = -sin(radians);
+    	m.v[1][0] = sin(radians);
+    	m.v[1][1] = cos(radians);
+    	m.v[2][0] = -dx * cos(radians) - dy * sin(radians) + dx;
+    	m.v[2][1] = dx * sin(radians) - dy * cos(radians) + dy;
 		return m;
+    }
+
+    static Matrix window_transformation(double x_center, double y_center, double rotation, double u_size, double v_size) {
+    	double radians = rotation*M_PI/180;
+    	Matrix m;
+    	m.v[0][0] = cos(-radians) / u_size;
+    	m.v[0][1] = -sin(-radians) / v_size;
+    	m.v[1][0] = sin(-radians) / u_size;
+    	m.v[1][1] = cos(-radians) / v_size;
+    	m.v[2][0] = (-x_center * cos(-radians) - y_center * sin(-radians)) / u_size;
+    	m.v[2][1] = (x_center * sin(-radians) - y_center * cos(-radians)) / v_size;
+    	return m;
     }
 
 	double v[3][3];
