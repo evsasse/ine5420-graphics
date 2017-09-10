@@ -9,17 +9,14 @@
 
 struct Coordinate {
 
+	Coordinate() : x(0), y(0) {}
+
 	Coordinate(double x, double y) :
 		x(x), y(y) {}
 
-	// world coordinates
 	double x, y;
 
-	// window coordinates, are calculated as needed.
-	double u, v;
-
 	Coordinate applyMatrix(const Matrix &m) const;
-	Coordinate mapToViewport(const Rectangle window, double xVpMax, double yVpMax);
 };
 
 struct Drawable {
@@ -30,13 +27,17 @@ struct Drawable {
 	std::string name;
 
 	virtual std::string type() = 0;
-	virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax) = 0;
+	virtual void draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax) = 0;
 	virtual Coordinate center() = 0;
 	virtual void applyMatrix(const Matrix &m) = 0;
+	virtual void setWindowCoordinates(const Matrix &m) = 0;
+
 	void translate(double dx, double dy);
 	void scale(double sx, double sy);
 	void rotate(double deg);
-	void rotate(Coordinate c, double deg);
+	void rotate(const Coordinate &c, double deg);
+	
+	Coordinate mapToViewport(const Coordinate &c, double xVpMax, double yVpMax);
 };
 
 struct Point : public Drawable {
@@ -45,11 +46,13 @@ struct Point : public Drawable {
 		Drawable(name), coordinate(coordinate) {}
 
 	Coordinate coordinate;
+	Coordinate window_coordinate;
 
 	std::string type();
-	void draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax);
+	void draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax);
 	Coordinate center();
 	void applyMatrix(const Matrix &m);
+	void setWindowCoordinates(const Matrix &m);
 };
 
 struct Line : public Drawable {
@@ -58,12 +61,13 @@ struct Line : public Drawable {
 		Drawable(name), coordinate_a(coordinate_a), coordinate_b(coordinate_b)
 		{}
 
-	Coordinate coordinate_a, coordinate_b;
+	Coordinate coordinate_a, coordinate_b, window_coordinate_a, window_coordinate_b;
 
 	std::string type();
-	void draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax);
+	void draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax);
 	Coordinate center();
 	void applyMatrix(const Matrix &m);
+	void setWindowCoordinates(const Matrix &m);
 };
 
 struct Wireframe : public Drawable {
@@ -73,11 +77,13 @@ struct Wireframe : public Drawable {
 		{}
 
 	std::vector<Coordinate> coordinates;
+	std::vector<Coordinate> window_coordinates;
 
 	std::string type();
-	void draw(const Cairo::RefPtr<Cairo::Context>& cr, const Rectangle window, double xVpMax, double yVpMax);
+	void draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax);
 	Coordinate center();
 	void applyMatrix(const Matrix &m);
+	void setWindowCoordinates(const Matrix &m);
 };
 
 #endif

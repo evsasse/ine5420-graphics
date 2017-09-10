@@ -6,7 +6,7 @@
 #include "add_object.h"
 
 SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
-    Gtk::Window(cobject), builder(refGlade) 
+    Gtk::Window(cobject), builder(refGlade), window2(SGIWindow(591.0/2.0, 597.0/2.0, 591.0/2.0, 597.0/2.0))
 {
     builder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
     builder->get_widget("StepEntry", pStepEntry);
@@ -71,10 +71,9 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     w = new Wireframe("wireframe2", coordinates);
     displayFile.drawables.push_back(w);
 
-    refresh_list_store();
+    displayFile.update_window_coordinates(Matrix::window_transformation(window2));
 
-    window.xMax = 591;
-    window.yMax = 597;
+    refresh_list_store();
 }
 
 void SGI::refresh_list_store()
@@ -99,7 +98,7 @@ Drawable* SGI::get_selected_object()
 {
     Gtk::ListStore::iterator iter = pObjectTreeSelection->get_selected();
 
-    if(iter) {
+    if (iter) {
         Gtk::ListStore::Row row = *iter;
 
         Drawable *object = row[objectColumnRecord.col_Object];
@@ -160,101 +159,12 @@ bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     yVpMax = pViewportDrawingArea->get_allocation().get_height();
 
     for (auto d : displayFile.drawables) {
-        d->draw(cr, window, xVpMax, yVpMax);
+        d->draw(cr, xVpMax, yVpMax);
     }
 
     cr->stroke();
 
     return true;
-}
-
-void SGI::on_up_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).translate(0, 10);
-    } else {
-        window.yMin += 10;
-        window.yMax += 10;
-    }
-
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_down_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).translate(0, -10);
-    } else {
-        window.yMin -= 10;
-        window.yMax -= 10;
-    }
-
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_left_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).translate(-10, 0);
-    } else {
-        window.xMin -= 10;
-        window.xMax -= 10;
-    }
-
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_right_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).translate(10, 0);
-    } else {
-        window.xMin += 10;
-        window.xMax += 10;
-    }
-
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_in_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).scale(1.1, 1.1);
-    } else {
-        window.xMax /= 1 + get_step_size() / 100.0;
-        window.yMax /= 1 + get_step_size() / 100.0;
-    }
-
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_out_button_clicked()
-{
-    Drawable* object = get_selected_object();
-
-    if(object) {
-        (*object).scale(0.9, 0.9);
-    } else {
-        window.xMax *= 1 + get_step_size() / 100.0;
-        window.yMax *= 1 + get_step_size() / 100.0;
-    }
-    
-    pViewportDrawingArea->queue_draw();
-}
-
-void SGI::on_select_window_button_clicked()
-{
-    pObjectTreeSelection->unselect_all();
 }
 
 void SGI::on_add_object_button_clicked()
@@ -272,12 +182,111 @@ void SGI::on_add_object_button_clicked()
     delete pAddObjectDialog;
 }
 
+void SGI::on_select_window_button_clicked()
+{
+    pObjectTreeSelection->unselect_all();
+}
+
+void SGI::on_up_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->translate(0, 10);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.y_center += 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_down_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->translate(0, -10);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.y_center -= 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_left_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->translate(-10, 0);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.x_center -= 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_right_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->translate(10, 0);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.x_center += 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_in_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->scale(1.1, 1.1);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.scale *= 1 + get_step_size() / 100.0;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+
+    pViewportDrawingArea->queue_draw();
+}
+
+void SGI::on_out_button_clicked()
+{
+    Drawable* object = get_selected_object();
+
+    if (object) {
+        object->scale(0.9, 0.9);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.scale /= 1 + get_step_size() / 100.0;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+    }
+    
+    pViewportDrawingArea->queue_draw();
+}
+
 void SGI::on_turn_left_button_clicked()
 {
     Drawable* object = get_selected_object();
 
-    if(object) {
+    if (object) {
         object->rotate(get_rotate_coordinate(), -10);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.rotation -= 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
     }
 
     pViewportDrawingArea->queue_draw();
@@ -287,8 +296,12 @@ void SGI::on_turn_right_button_clicked()
 {
     Drawable* object = get_selected_object();
 
-    if(object) {
+    if (object) {
         object->rotate(get_rotate_coordinate(), 10);
+        object->setWindowCoordinates(Matrix::window_transformation(window2));
+    } else {
+        window2.rotation += 10;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
     }
 
     pViewportDrawingArea->queue_draw();
@@ -303,7 +316,7 @@ void SGI::on_object_rotate_button_clicked()
 {
     Drawable* object = get_selected_object();
 
-    if(object) {
+    if (object) {
         set_rotate_coordinate(object->center());
     }
 }

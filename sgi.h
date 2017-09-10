@@ -15,6 +15,8 @@
 
 #include "structs.h"
 
+#include "sgiwindow.h"
+
 
 struct ObjectColumnRecord : public Gtk::TreeModelColumnRecord
 {
@@ -69,23 +71,23 @@ protected:
 
  	bool on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 
+	void on_add_object_button_clicked();
+	void on_select_window_button_clicked();
 	void on_up_button_clicked();
 	void on_down_button_clicked();
 	void on_left_button_clicked();
 	void on_right_button_clicked();
 	void on_in_button_clicked();
-	void on_out_button_clicked();	
-	void on_add_object_button_clicked();
-	void on_select_window_button_clicked();
+	void on_out_button_clicked();		
 	void on_turn_left_button_clicked();
 	void on_turn_right_button_clicked();
 	void on_world_rotate_button_clicked();
 	void on_window_rotate_button_clicked();
 	void on_object_rotate_button_clicked();
-	
+
 private:
 	DisplayFile displayFile;
-	Rectangle window;
+	SGIWindow window2;
 	double xVpMax, yVpMax;
 };
 

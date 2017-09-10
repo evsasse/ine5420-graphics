@@ -5,16 +5,7 @@
 
 #include <math.h>
 
-struct Rectangle
-{
-	Rectangle() : 
-		xMin(0), yMin(0), xMax(0), yMax(0) {}
-
-	Rectangle(double xMin, double yMin, double xMax, double yMax) : 
-		xMin(xMin), yMin(yMin), xMax(xMax), yMax(yMax) {}
-
-	double xMin, yMin, xMax, yMax; 		
-};
+#include "sgiwindow.h"
 
 struct Matrix {
 	Matrix() {
@@ -54,15 +45,15 @@ struct Matrix {
 		return m;
     }
 
-    static Matrix window_transformation(double x_center, double y_center, double rotation, double u_size, double v_size) {
-    	double radians = rotation*M_PI/180;
+    static Matrix window_transformation(const SGIWindow &w) {
+    	double radians = w.rotation*M_PI/180;
     	Matrix m;
-    	m.v[0][0] = cos(-radians) / u_size;
-    	m.v[0][1] = -sin(-radians) / v_size;
-    	m.v[1][0] = sin(-radians) / u_size;
-    	m.v[1][1] = cos(-radians) / v_size;
-    	m.v[2][0] = (-x_center * cos(-radians) - y_center * sin(-radians)) / u_size;
-    	m.v[2][1] = (x_center * sin(-radians) - y_center * cos(-radians)) / v_size;
+    	m.v[0][0] = cos(-radians) / w.u_size();
+    	m.v[0][1] = -sin(-radians) / w.v_size();
+    	m.v[1][0] = sin(-radians) / w.u_size();
+    	m.v[1][1] = cos(-radians) / w.v_size();
+    	m.v[2][0] = (-w.x_center * cos(-radians) - w.y_center * sin(-radians)) / w.u_size();
+    	m.v[2][1] = (w.x_center * sin(-radians) - w.y_center * cos(-radians)) / w.v_size();
     	return m;
     }
 

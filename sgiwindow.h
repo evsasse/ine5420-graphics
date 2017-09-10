@@ -1,7 +1,5 @@
-#ifndef WINDOW_H_
-#define WINDOW_H_
-
-#include "display_file.h"
+#ifndef SGIWINDOW_H_
+#define SGIWINDOW_H_
 
 /*
 +=========WORLD==========+
@@ -35,19 +33,19 @@ The window may move, rotate, and scale, as an object in the world,
 therefore its axis are independent from the world's axis.
 */
 
-struct Window {
-	Window(double x_center, double y_center, double u_base, double v_base) : 
+struct SGIWindow {
+	SGIWindow(double x_center, double y_center, double u_base, double v_base) : 
 		x_center(x_center), y_center(y_center), u_base(u_base), v_base(v_base),
 		scale(1), rotation(0) {} 
 
 	// dictates the world size of "one u"
 	double u_size() const {
-		return u_base * scale;
+		return u_base / scale;
 	}
 
 	// dictates the world size of "one v"
 	double v_size() const {
-		return v_base * scale;
+		return v_base / scale;
 	}
 
 	// the position of the window in the world
@@ -57,11 +55,11 @@ struct Window {
 	// should be based on the viewport size, not to cause visual stretch
 	double u_base, v_base;	
 
-	// "zoom" 
+	// "zoom" of the window
 	double scale;	
 
 	// the rotation of the window in the world
 	double rotation;
 };
 
-#endif /* WINDOW_H_ */
+#endif /* SGIWINDOW_H_ */
