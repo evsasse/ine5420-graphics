@@ -4,9 +4,12 @@
 #include <sstream>
 
 #include "add_object.h"
+#include "painter.h"
+#include "clipper.h"
+#include "viewport.h"
 
 SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
-    Gtk::Window(cobject), builder(refGlade), window2(SGIWindow(591.0/2.0, 597.0/2.0, 591.0/2.0, 597.0/2.0))
+    Gtk::Window(cobject), builder(refGlade), window(), queueRecalcWindowCoordinates(true)
 {
     builder->get_widget("ViewportDrawingArea", pViewportDrawingArea);
     builder->get_widget("StepEntry", pStepEntry);
@@ -71,8 +74,6 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     w = new Wireframe("wireframe2", coordinates);
     displayFile.drawables.push_back(w);
 
-    displayFile.update_window_coordinates(Matrix::window_transformation(window2));
-
     refresh_list_store();
 }
 
@@ -133,7 +134,7 @@ Coordinate SGI::get_rotate_coordinate()
     try {
         y = std::stod(pRotateYEntry->get_buffer()->get_text());
     } catch (...) {
-        std::cout << "X is invalid" << std::endl;
+        std::cout << "Y is invalid" << std::endl;
         y =  0;
     }
 
@@ -155,14 +156,27 @@ void SGI::set_rotate_coordinate(Coordinate coordinate)
 
 bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-    xVpMax = pViewportDrawingArea->get_allocation().get_width();
-    yVpMax = pViewportDrawingArea->get_allocation().get_height();
+    auto allocation = pViewportDrawingArea->get_allocation();
+    // should find a way to better set this up
+    // not needing to reset the size at every draw
+    // and to the viewport object to be reused
+    Viewport viewport(allocation.get_width(), allocation.get_height(), 20);
+    window.u_base = viewport.xSize();
+    window.v_base = viewport.ySize();
 
-    for (auto d : displayFile.drawables) {
-        d->draw(cr, xVpMax, yVpMax);
+    if(queueRecalcWindowCoordinates){
+        queueRecalcWindowCoordinates = false;
+        displayFile.update_window_coordinates(Matrix::window_transformation(window));
     }
 
-    cr->stroke();
+    Clipper clipper;
+    Painter painter(cr, viewport);
+
+    painter.drawBorder();
+
+    for (auto d : displayFile.drawables) {
+        painter.draw(clipper.clip(d));
+    }
 
     return true;
 }
@@ -193,10 +207,10 @@ void SGI::on_up_button_clicked()
 
     if (object) {
         object->translate(0, 10);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.y_center += 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.y_center += 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -208,10 +222,10 @@ void SGI::on_down_button_clicked()
 
     if (object) {
         object->translate(0, -10);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.y_center -= 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.y_center -= 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -223,10 +237,10 @@ void SGI::on_left_button_clicked()
 
     if (object) {
         object->translate(-10, 0);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.x_center -= 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.x_center -= 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -238,10 +252,10 @@ void SGI::on_right_button_clicked()
 
     if (object) {
         object->translate(10, 0);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.x_center += 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.x_center += 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -253,10 +267,10 @@ void SGI::on_in_button_clicked()
 
     if (object) {
         object->scale(1.1, 1.1);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.scale *= 1 + get_step_size() / 100.0;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.scale *= 1 + get_step_size() / 100.0;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -268,10 +282,10 @@ void SGI::on_out_button_clicked()
 
     if (object) {
         object->scale(0.9, 0.9);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.scale /= 1 + get_step_size() / 100.0;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.scale /= 1 + get_step_size() / 100.0;
+        queueRecalcWindowCoordinates = true;
     }
     
     pViewportDrawingArea->queue_draw();
@@ -283,10 +297,10 @@ void SGI::on_turn_left_button_clicked()
 
     if (object) {
         object->rotate(get_rotate_coordinate(), -10);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.rotation -= 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.rotation -= 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();
@@ -298,10 +312,10 @@ void SGI::on_turn_right_button_clicked()
 
     if (object) {
         object->rotate(get_rotate_coordinate(), 10);
-        object->setWindowCoordinates(Matrix::window_transformation(window2));
+        object->setWindowCoordinates(Matrix::window_transformation(window));
     } else {
-        window2.rotation += 10;
-        displayFile.update_window_coordinates(Matrix::window_transformation(window2));
+        window.rotation += 10;
+        queueRecalcWindowCoordinates = true;
     }
 
     pViewportDrawingArea->queue_draw();

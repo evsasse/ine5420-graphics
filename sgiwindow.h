@@ -34,9 +34,13 @@ therefore its axis are independent from the world's axis.
 */
 
 struct SGIWindow {
-	SGIWindow(double x_center, double y_center, double u_base, double v_base) : 
-		x_center(x_center), y_center(y_center), u_base(u_base), v_base(v_base),
-		scale(1), rotation(0) {} 
+	SGIWindow(double u_base = 0, double v_base = 0) : 
+		x_center(0),
+		y_center(0),
+		u_base(u_base),
+		v_base(v_base),
+		scale(1),
+		rotation(0) {} 
 
 	// dictates the world size of "one u"
 	double u_size() const {

@@ -33,33 +33,11 @@ void Drawable::rotate(const Coordinate &c, double deg)
 	applyMatrix(Matrix::rotation(c.x, c.y, deg));
 }
 
-Coordinate Drawable::mapToViewport(const Coordinate &c, double xVpMax, double yVpMax)
-{
-    double new_x = (c.x  + 1) * xVpMax / (2.0);
-    double new_y = (1 - (c.y + 1)  / 2.0) * yVpMax;
-
-    return Coordinate(new_x, new_y);    
-}
-
 
 
 std::string Point::type()
 {
 	return "Point";
-}
-
-void Point::draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax)
-{
-	auto vpCoordinate = mapToViewport(window_coordinate, xVpMax, yVpMax);
-
-    double x = vpCoordinate.x;
-    double y = vpCoordinate.y;
-
-    cr->move_to(x-2, y-2);
-    cr->line_to(x+2, y-2);
-    cr->line_to(x+2, y+2);
-    cr->line_to(x-2, y+2);
-    cr->fill();
 }
 
 Coordinate Point::center()
@@ -82,15 +60,6 @@ void Point::setWindowCoordinates(const Matrix &m)
 std::string Line::type()
 {
 	return "Line";
-}
-
-void Line::draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax)
-{
-	auto vpCoordinate_a = mapToViewport(window_coordinate_a, xVpMax, yVpMax);
-    auto vpCoordinate_b = mapToViewport(window_coordinate_b, xVpMax, yVpMax);
-
-    cr->move_to(vpCoordinate_a.x, vpCoordinate_a.y);
-    cr->line_to(vpCoordinate_b.x, vpCoordinate_b.y);
 }
 
 Coordinate Line::center()
@@ -118,20 +87,6 @@ void Line::setWindowCoordinates(const Matrix &m)
 std::string Wireframe::type()
 {
 	return "Wireframe";
-}
-
-void Wireframe::draw(const Cairo::RefPtr<Cairo::Context>& cr, double xVpMax, double yVpMax)
-{
-	auto firstVpCoordinate = mapToViewport(window_coordinates[0], xVpMax, yVpMax);
-
-    cr->move_to(firstVpCoordinate.x, firstVpCoordinate.y);
-
-    for (int i = 1; i < window_coordinates.size(); ++i) {
-        auto vpCoordinate = mapToViewport(window_coordinates[i], xVpMax, yVpMax);
-        cr->line_to(vpCoordinate.x, vpCoordinate.y);
-    }
-
-    cr->line_to(firstVpCoordinate.x, firstVpCoordinate.y);
 }
 
 Coordinate Wireframe::center()

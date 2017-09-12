@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "drawable.h"
-#include "structs.h"
+#include "matrix.h"
 
 struct DisplayFile {
 	std::vector<Drawable*> drawables;

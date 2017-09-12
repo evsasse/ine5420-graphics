@@ -13,7 +13,7 @@
 
 #include "display_file.h"
 
-#include "structs.h"
+#include "matrix.h"
 
 #include "sgiwindow.h"
 
@@ -87,8 +87,9 @@ protected:
 
 private:
 	DisplayFile displayFile;
-	SGIWindow window2;
+	SGIWindow window;
 	double xVpMax, yVpMax;
+	bool queueRecalcWindowCoordinates;
 };
 
 #endif
