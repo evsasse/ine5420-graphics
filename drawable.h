@@ -54,7 +54,9 @@ struct Point : public Drawable {
 struct Line : public Drawable {
 
 	Line(std::string name, Coordinate coordinate_a, Coordinate coordinate_b) :
-		Drawable(name), coordinate_a(coordinate_a), coordinate_b(coordinate_b)
+		Drawable(name),
+		coordinate_a(coordinate_a),
+		coordinate_b(coordinate_b)
 		{}
 
 	Coordinate coordinate_a, coordinate_b, window_coordinate_a, window_coordinate_b;

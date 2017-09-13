@@ -164,6 +164,88 @@ protected:
     }
  
     Drawable *clip(Wireframe *pWireframe){
+        std::vector<Line> lines;
+
+        int size = pWireframe->window_coordinates.size();
+
+        for(int i = 0; i < size; i++){
+            Line workaround = Line("workaround",Coordinate(), Coordinate());
+            workaround.window_coordinate_a = pWireframe->window_coordinates[i];
+            workaround.window_coordinate_b = pWireframe->window_coordinates[(i+1)%size];
+
+            Line *clipped = (Line *) clip(&workaround);
+            if(clipped){
+                // workaround will have its window_coordinates already clipped
+                // no need to dereference the clipped pointer
+                lines.push_back(workaround);
+            }
+        }
+
+        std::vector<Coordinate> coords;
+
+        size = lines.size();
+
+        for(int i = 0; i < size; i++){
+            auto current = lines[i];
+            auto next = lines[(i+1)%size];
+            coords.push_back(current.window_coordinate_b);
+
+            if(current.window_coordinate_b.y == 1){
+                if(next.window_coordinate_a.x == 1){
+                    coords.push_back(Coordinate(1,1));
+                } else
+                if(next.window_coordinate_a.y == -1){
+                    coords.push_back(Coordinate(1,1));
+                    coords.push_back(Coordinate(1,-1));
+                } else
+                if(next.window_coordinate_a.x == -1){
+                    coords.push_back(Coordinate(-1,1));
+                }
+                coords.push_back(next.window_coordinate_a);
+            } else
+            if(current.window_coordinate_b.x == 1){
+                if(next.window_coordinate_a.y == 1){
+                    coords.push_back(Coordinate(1,1));
+                } else
+                if(next.window_coordinate_a.y == -1){
+                    coords.push_back(Coordinate(1,-1));
+                } else
+                if(next.window_coordinate_a.x == -1){
+                    coords.push_back(Coordinate(1,-1));
+                    coords.push_back(Coordinate(-1,-1));
+                }
+                coords.push_back(next.window_coordinate_a);
+            } else
+            if(current.window_coordinate_b.y == -1){
+                if(next.window_coordinate_a.y == 1){
+                    coords.push_back(Coordinate(-1,-1));
+                    coords.push_back(Coordinate(-1,1));
+                } else
+                if(next.window_coordinate_a.x == 1){
+                    coords.push_back(Coordinate(1,-1));
+                } else
+                if(next.window_coordinate_a.x == -1){
+                    coords.push_back(Coordinate(-1,-1));
+                }
+                coords.push_back(next.window_coordinate_a);
+            } else
+            if(current.window_coordinate_b.x == -1){
+                if(next.window_coordinate_a.y == 1){
+                    coords.push_back(Coordinate(-1,1));
+                } else
+                if(next.window_coordinate_a.x == 1){
+                    coords.push_back(Coordinate(-1,1));
+                    coords.push_back(Coordinate(1,1));
+                } else
+                if(next.window_coordinate_a.y == -1){
+                    coords.push_back(Coordinate(-1,-1));
+                }
+                coords.push_back(next.window_coordinate_a);
+            }
+        }
+
+        pWireframe->window_coordinates = coords;
+
         return pWireframe;
     }
 

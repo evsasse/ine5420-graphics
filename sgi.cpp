@@ -74,6 +74,15 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     w = new Wireframe("wireframe2", coordinates);
     displayFile.drawables.push_back(w);
 
+    coordinates = std::vector<Coordinate>();
+    coordinates.push_back(Coordinate(200, 200));
+    coordinates.push_back(Coordinate(250, 100));
+    coordinates.push_back(Coordinate(150, 175));
+    coordinates.push_back(Coordinate(300, 175));
+    coordinates.push_back(Coordinate(150, 100));
+    w = new Wireframe("star", coordinates);
+    displayFile.drawables.push_back(w);
+
     refresh_list_store();
 }
 
