@@ -17,11 +17,11 @@ struct Viewport {
 
     double xMin, xMax, yMin, yMax;
 
-    double xSize(){
+    double xSize() const{
         return xMax - xMin;
     }
 
-    double ySize(){
+    double ySize() const{
         return yMax - yMin;
     }
 };

@@ -55,8 +55,8 @@ protected:
 
 		// remembering: on the viewport the coordinate system starts at the top left
 		// thats why these transformatiosn may seem strange at first glance
-		double new_x = vp.xMin + ((1 + c.x) / 2.0) * vp.xMax / 2.0;
-		double new_y = vp.yMin + (1 - (1 + c.y) / 2.0) * vp.yMax / 2.0;
+		double new_x = vp.xMin + ((1 + c.x) / 2.0) * vp.xSize();
+		double new_y = vp.yMin + (1 - (1 + c.y) / 2.0) * vp.ySize();
 
 		return Coordinate(new_x, new_y);
 	}

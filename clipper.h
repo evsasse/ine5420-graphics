@@ -1,6 +1,8 @@
 #ifndef CLIPPER_H
 #define CLIPPER_H
 
+#include <iostream>
+
 #include "drawable.h"
 
 class Clipper
@@ -38,20 +40,152 @@ protected:
     }
 
     Drawable *clip(Line *pLine){
-        return pLine;   
-    }
+        auto coord_a = pLine->window_coordinate_a;
+        auto coord_b = pLine->window_coordinate_b;
+        auto cs_class_a = cohenSutherlandCoordClassifier(coord_a);
+        auto cs_class_b = cohenSutherlandCoordClassifier(coord_b);
+        if(cs_class_a == CohenSutherlandClass::MIDDLE
+           && cs_class_b == CohenSutherlandClass::MIDDLE){
+            // completely inside
+            return pLine;
+        }
 
+        if((((int) cs_class_a) & ((int) cs_class_b)) != 0) {
+            // completely outside
+            return nullptr;
+        }
+
+        double m = cohenSutherlandAngularCoeficient(coord_a, coord_b);
+
+        if(cs_class_a == CohenSutherlandClass::LEFT){
+            coord_a = cohenSutherlandIntersectVertical(m, -1, coord_a);
+        } else 
+        if(cs_class_a == CohenSutherlandClass::RIGHT){
+            coord_a = cohenSutherlandIntersectVertical(m, 1, coord_a);
+        } else
+        if(cs_class_a == CohenSutherlandClass::TOP){
+            coord_a = cohenSutherlandIntersectHorizontal(m, 1, coord_a);
+        } else
+        if(cs_class_a == CohenSutherlandClass::BOTTOM){
+            coord_a = cohenSutherlandIntersectHorizontal(m, -1, coord_a);
+        } else
+        if(cs_class_a == CohenSutherlandClass::TOP_LEFT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, -1, coord_a);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_a = temp;
+            } else {
+                coord_a = cohenSutherlandIntersectHorizontal(m, 1, coord_a);
+            }
+        } else
+        if(cs_class_a == CohenSutherlandClass::TOP_RIGHT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, 1, coord_a);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_a = temp;
+            } else {
+                coord_a = cohenSutherlandIntersectHorizontal(m, 1, coord_a);
+            }
+        } else
+        if(cs_class_a == CohenSutherlandClass::BOTTOM_LEFT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, -1, coord_a);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_a = temp;
+            } else {
+                coord_a = cohenSutherlandIntersectHorizontal(m, -1, coord_a);
+            }
+        } else
+        if(cs_class_a == CohenSutherlandClass::BOTTOM_RIGHT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, 1, coord_a);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_a = temp;
+            } else {
+                coord_a = cohenSutherlandIntersectHorizontal(m, -1, coord_a);
+            }
+        }
+
+        if(coord_a.x < -1 || coord_a.x > 1
+        || coord_a.y < -1 || coord_a.y > 1){
+            return nullptr;
+        }
+
+        if(cs_class_b == CohenSutherlandClass::LEFT){
+            coord_b = cohenSutherlandIntersectVertical(m, -1, coord_b);
+        } else 
+        if(cs_class_b == CohenSutherlandClass::RIGHT){
+            coord_b = cohenSutherlandIntersectVertical(m, 1, coord_b);
+        } else
+        if(cs_class_b == CohenSutherlandClass::TOP){
+            coord_b = cohenSutherlandIntersectHorizontal(m, 1, coord_b);
+        } else
+        if(cs_class_b == CohenSutherlandClass::BOTTOM){
+            coord_b = cohenSutherlandIntersectHorizontal(m, -1, coord_b);
+        } else
+        if(cs_class_b == CohenSutherlandClass::TOP_LEFT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, -1, coord_b);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_b = temp;
+            } else {
+                coord_b = cohenSutherlandIntersectHorizontal(m, 1, coord_b);
+            }
+        } else
+        if(cs_class_b == CohenSutherlandClass::TOP_RIGHT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, 1, coord_b);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_b = temp;
+            } else {
+                coord_b = cohenSutherlandIntersectHorizontal(m, 1, coord_b);
+            }
+        } else
+        if(cs_class_b == CohenSutherlandClass::BOTTOM_LEFT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, -1, coord_b);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_b = temp;
+            } else {
+                coord_b = cohenSutherlandIntersectHorizontal(m, -1, coord_b);
+            }
+        } else
+        if(cs_class_b == CohenSutherlandClass::BOTTOM_RIGHT){
+            Coordinate temp = cohenSutherlandIntersectVertical(m, 1, coord_b);
+            if(cohenSutherlandCoordClassifier(temp) == CohenSutherlandClass::MIDDLE){
+                coord_b = temp;
+            } else {
+                coord_b = cohenSutherlandIntersectHorizontal(m, -1, coord_b);
+            }
+        }
+
+        if(coord_b.x < -1 || coord_b.x > 1
+        || coord_b.y < -1 || coord_b.y > 1){
+            return nullptr;
+        }
+
+        pLine->window_coordinate_a = coord_a;
+        pLine->window_coordinate_b = coord_b;
+
+        return pLine;
+    }
+ 
     Drawable *clip(Wireframe *pWireframe){
         return pWireframe;
     }
 
+    Coordinate cohenSutherlandIntersectHorizontal(double m, double y, const Coordinate& old_coord){
+        return Coordinate((y - old_coord.y) / m + old_coord.x, y);
+    }
+
+    Coordinate cohenSutherlandIntersectVertical(double m, double x, const Coordinate& old_coord){
+        return Coordinate(x, m * (x - old_coord.x) + old_coord.y);
+    }
+
+    double cohenSutherlandAngularCoeficient(const Coordinate& coord_a, const Coordinate& coord_b){
+        return (coord_b.y - coord_a.y) / (coord_b.x - coord_a.x);
+    }
+
     CohenSutherlandClass cohenSutherlandCoordClassifier(const Coordinate& coord){
-        if(coord.y < -1 && coord.x < -1) return CohenSutherlandClass::TOP_LEFT;
-        if(coord.y < -1 && coord.x >  1) return CohenSutherlandClass::TOP_RIGHT;
-        if(coord.y < -1                ) return CohenSutherlandClass::TOP;
-        if(coord.y >  1 && coord.x < -1) return CohenSutherlandClass::BOTTOM_LEFT;
-        if(coord.y >  1 && coord.x >  1) return CohenSutherlandClass::BOTTOM_RIGHT;
-        if(coord.y >  1                ) return CohenSutherlandClass::BOTTOM;
+        if(coord.y >  1 && coord.x < -1) return CohenSutherlandClass::TOP_LEFT;
+        if(coord.y >  1 && coord.x >  1) return CohenSutherlandClass::TOP_RIGHT;
+        if(coord.y >  1                ) return CohenSutherlandClass::TOP;
+        if(coord.y < -1 && coord.x < -1) return CohenSutherlandClass::BOTTOM_LEFT;
+        if(coord.y < -1 && coord.x >  1) return CohenSutherlandClass::BOTTOM_RIGHT;
+        if(coord.y < -1                ) return CohenSutherlandClass::BOTTOM;
         if(                coord.x < -1) return CohenSutherlandClass::LEFT;
         if(                coord.x >  1) return CohenSutherlandClass::RIGHT;
                                          return CohenSutherlandClass::MIDDLE;
