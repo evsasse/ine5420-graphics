@@ -12,6 +12,18 @@ Coordinate Coordinate::applyMatrix(const Matrix &m) const
 
 
 
+BezierCurve BezierCurve::applyMatrix(const Matrix &m) const
+{
+	Coordinate new_c1 = c1.applyMatrix(m);
+	Coordinate new_c2 = c2.applyMatrix(m);
+	Coordinate new_c3 = c3.applyMatrix(m);
+	Coordinate new_c4 = c4.applyMatrix(m);
+
+    return BezierCurve(new_c1, new_c2, new_c3, new_c4);
+}
+
+
+
 void Drawable::translate(double dx, double dy)
 {
 	applyMatrix(Matrix::translation(dx, dy));
@@ -125,4 +137,39 @@ void Wireframe::setWindowCoordinates(const Matrix &m)
 	}
 
     window_coordinates = new_coordinates;
+}
+
+std::string Curve2D::type()
+{
+	return "Curve2D";
+}
+
+Coordinate Curve2D::center()
+{
+    double cx = (curves[0].c1.x + curves[curves.size() - 1].c4.x) / 2;
+    double cy = (curves[0].c1.y + curves[curves.size() - 1].c4.y) / 2;
+
+    return Coordinate(cx, cy);
+}
+
+void Curve2D::applyMatrix(const Matrix &m)
+{
+	std::vector<BezierCurve> new_curves;
+
+	for (auto curve : curves) {
+		new_curves.push_back(curve.applyMatrix(m));
+	}
+
+    curves = new_curves;
+}
+
+void Curve2D::setWindowCoordinates(const Matrix &m)
+{
+	std::vector<BezierCurve> new_curves;
+
+	for (auto curve : curves) {
+		new_curves.push_back(curve.applyMatrix(m));
+	}
+
+    window_curves = new_curves;
 }

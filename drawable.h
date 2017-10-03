@@ -19,6 +19,21 @@ struct Coordinate {
 	Coordinate applyMatrix(const Matrix &m) const;
 };
 
+struct BezierCurve {
+
+	BezierCurve(Coordinate c1, Coordinate c2, Coordinate c3, Coordinate c4) :
+		c1(c1), c2(c2), c3(c3), c4(c4) {}
+
+	BezierCurve() :	c1(), c2(), c3(), c4() {}		
+
+	Coordinate c1;
+	Coordinate c2;
+	Coordinate c3;
+	Coordinate c4;
+
+	BezierCurve applyMatrix(const Matrix &m) const;
+};
+
 struct Drawable {
 
 	Drawable(std::string name) : 
@@ -54,10 +69,7 @@ struct Point : public Drawable {
 struct Line : public Drawable {
 
 	Line(std::string name, Coordinate coordinate_a, Coordinate coordinate_b) :
-		Drawable(name),
-		coordinate_a(coordinate_a),
-		coordinate_b(coordinate_b)
-		{}
+		Drawable(name),	coordinate_a(coordinate_a), coordinate_b(coordinate_b) {}
 
 	Coordinate coordinate_a, coordinate_b, window_coordinate_a, window_coordinate_b;
 
@@ -70,11 +82,24 @@ struct Line : public Drawable {
 struct Wireframe : public Drawable {
 
 	Wireframe(std::string name, std::vector<Coordinate> coordinates) :
-		Drawable(name), coordinates(coordinates)
-		{}
+		Drawable(name), coordinates(coordinates) {}
 
 	std::vector<Coordinate> coordinates;
 	std::vector<Coordinate> window_coordinates;
+
+	std::string type();
+	Coordinate center();
+	void applyMatrix(const Matrix &m);
+	void setWindowCoordinates(const Matrix &m);
+};
+
+struct Curve2D : public Drawable {
+
+	Curve2D(std::string name, std::vector<BezierCurve> curves) : 
+		Drawable(name), curves(curves) {}
+
+	std::vector<BezierCurve> curves;
+	std::vector<BezierCurve> window_curves;
 
 	std::string type();
 	Coordinate center();

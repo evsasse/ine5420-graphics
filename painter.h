@@ -6,6 +6,8 @@
 #include "drawable.h"
 #include "viewport.h"
 
+#include <math.h>
+
 class Painter
 {
 public:
@@ -15,22 +17,32 @@ public:
 
 	void draw(Drawable *pDrawable)
 	{
-		if(!pDrawable){
+		if (!pDrawable) {
 			// in case of the clipper not returning a new drawable
 			return;
 		}
 
 		Point *point = dynamic_cast<Point *>(pDrawable);
-		if(point){
+		if (point) {
 			return draw(point);
 		}
 
 		Line *line = dynamic_cast<Line *>(pDrawable);
-		if(line){
+		if (line) {
 			return draw(line);
 		}
 
-		return draw((Wireframe *) pDrawable);
+		Wireframe *wireframe = dynamic_cast<Wireframe *>(pDrawable);
+		if (wireframe) {
+			return draw(wireframe);
+		}
+
+		Curve2D *curve2D = dynamic_cast<Curve2D *>(pDrawable);
+		if (curve2D) {
+			return draw(curve2D);
+		}
+
+		return;
 	}
 
 	void drawBorder(){
@@ -104,6 +116,38 @@ protected:
 
 	    cr->line_to(firstVpCoordinate.x, firstVpCoordinate.y);
 	    cr->stroke();
+	}
+
+	void draw(Curve2D *pCurve2D)
+	{
+		cr->set_source_rgb(0, 0, 0);
+
+		auto firstVpCoordinate = mapToViewport(pCurve2D->window_curves[0].c1);
+
+		cr->move_to(firstVpCoordinate.x, firstVpCoordinate.y);
+
+		for (int i = 0; i < pCurve2D->window_curves.size(); ++i) {
+			for (size_t t = 0; t <= 100; t++) {
+				auto vpCoordinate = mapToViewport(bezier_blending(t/100.0, pCurve2D->window_curves[i]));
+				cr->line_to(vpCoordinate.x, vpCoordinate.y);
+			}
+		}
+
+		cr->stroke();
+	}
+
+	Coordinate bezier_blending(double t, const BezierCurve &curve) {
+		double x, y;
+
+		double c1_factor = - pow(t, 3) + 3 * pow(t, 2) - 3 * t + 1;
+		double c2_factor = 3 * pow(t, 3) - 6 * pow(t, 2) + 3 * t;
+		double c3_factor = - 3 * pow(t, 3) + 3 * pow(t, 2);
+		double c4_factor = pow(t, 3);
+
+		x = curve.c1.x * c1_factor + curve.c2.x * c2_factor + curve.c3.x * c3_factor + curve.c4.x * c4_factor;
+		y = curve.c1.y * c1_factor + curve.c2.y * c2_factor + curve.c3.y * c3_factor + curve.c4.y * c4_factor;
+
+		return Coordinate(x, y);
 	}
 
 };

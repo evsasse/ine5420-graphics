@@ -83,6 +83,12 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     w = new Wireframe("star", coordinates);
     displayFile.drawables.push_back(w);
 
+    std::vector<BezierCurve> curves;
+    curves.push_back(BezierCurve(Coordinate(0, 0), Coordinate(48, 80), Coordinate(148, -80), Coordinate(200, 0)));
+    curves.push_back(BezierCurve(Coordinate(200, 0), Coordinate(280, -80), Coordinate(120, -160), Coordinate(200, -200)));
+    Curve2D* c = new Curve2D("curve2D", curves);
+    displayFile.drawables.push_back(c);
+
     refresh_list_store();
 }
 

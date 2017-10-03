@@ -23,7 +23,16 @@ public:
             return clip(line);
         }
 
-        return clip((Wireframe *) pDrawable);
+        Wireframe *wireframe = dynamic_cast<Wireframe *>(pDrawable);
+        if (wireframe) {
+            return clip(wireframe);
+        }
+
+        Curve2D *curve2D = dynamic_cast<Curve2D *>(pDrawable);
+        if (curve2D) {
+            return curve2D;
+            //return draw(curve2D);
+        }
     }
 
 protected:
