@@ -37,9 +37,9 @@ public:
 			return draw(wireframe);
 		}
 
-		Curve2D *curve2D = dynamic_cast<Curve2D *>(pDrawable);
-		if (curve2D) {
-			return draw(curve2D);
+		Bezier *bezier = dynamic_cast<Bezier *>(pDrawable);
+		if (bezier) {
+			return draw(bezier);
 		}
 
 		return;
@@ -118,17 +118,17 @@ protected:
 	    cr->stroke();
 	}
 
-	void draw(Curve2D *pCurve2D)
+	void draw(Bezier *pBezier)
 	{
 		cr->set_source_rgb(0, 0, 0);
 
-		auto firstVpCoordinate = mapToViewport(pCurve2D->window_curves[0].c1);
+		auto firstVpCoordinate = mapToViewport(pBezier->window_curves[0].c1);
 
 		cr->move_to(firstVpCoordinate.x, firstVpCoordinate.y);
 
-		for (int i = 0; i < pCurve2D->window_curves.size(); ++i) {
+		for (int i = 0; i < pBezier->window_curves.size(); ++i) {
 			for (size_t t = 0; t <= 100; t++) {
-				auto vpCoordinate = mapToViewport(bezier_blending(t/100.0, pCurve2D->window_curves[i]));
+				auto vpCoordinate = mapToViewport(bezier_blending(t/100.0, pBezier->window_curves[i]));
 				cr->line_to(vpCoordinate.x, vpCoordinate.y);
 			}
 		}

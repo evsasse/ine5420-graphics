@@ -28,10 +28,10 @@ public:
             return clip(wireframe);
         }
 
-        Curve2D *curve2D = dynamic_cast<Curve2D *>(pDrawable);
-        if (curve2D) {
-            return curve2D;
-            //return draw(curve2D);
+        Bezier *bezier = dynamic_cast<Bezier *>(pDrawable);
+        if (bezier) {
+            return bezier;
+            //return clip(bezier);
         }
     }
 

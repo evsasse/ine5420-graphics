@@ -86,7 +86,7 @@ SGI::SGI(BaseObjectType* cobject, const Glib::RefPtr<Gtk::Builder>& refGlade) :
     std::vector<BezierCurve> curves;
     curves.push_back(BezierCurve(Coordinate(0, 0), Coordinate(48, 80), Coordinate(148, -80), Coordinate(200, 0)));
     curves.push_back(BezierCurve(Coordinate(200, 0), Coordinate(280, -80), Coordinate(120, -160), Coordinate(200, -200)));
-    Curve2D* c = new Curve2D("curve2D", curves);
+    Bezier* c = new Bezier("bezier", curves);
     displayFile.drawables.push_back(c);
 
     refresh_list_store();
@@ -171,6 +171,7 @@ void SGI::set_rotate_coordinate(Coordinate coordinate)
 
 bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
+
     auto allocation = pViewportDrawingArea->get_allocation();
     // should find a way to better set this up
     // not needing to reset the size at every draw
@@ -179,7 +180,8 @@ bool SGI::on_viewport_drawing_area_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     window.u_base = viewport.xSize();
     window.v_base = viewport.ySize();
 
-    if(queueRecalcWindowCoordinates){
+    if(true){
+    // if(queueRecalcWindowCoordinates){
         queueRecalcWindowCoordinates = false;
         displayFile.update_window_coordinates(Matrix::window_transformation(window));
     }

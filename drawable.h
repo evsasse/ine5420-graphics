@@ -55,7 +55,8 @@ struct Drawable {
 struct Point : public Drawable {
 
 	Point(std::string name, Coordinate coordinate) :
-		Drawable(name), coordinate(coordinate) {}
+		Drawable(name),
+		coordinate(coordinate) {}
 
 	Coordinate coordinate;
 	Coordinate window_coordinate;
@@ -69,7 +70,9 @@ struct Point : public Drawable {
 struct Line : public Drawable {
 
 	Line(std::string name, Coordinate coordinate_a, Coordinate coordinate_b) :
-		Drawable(name),	coordinate_a(coordinate_a), coordinate_b(coordinate_b) {}
+		Drawable(name),
+		coordinate_a(coordinate_a),
+		coordinate_b(coordinate_b) {}
 
 	Coordinate coordinate_a, coordinate_b, window_coordinate_a, window_coordinate_b;
 
@@ -82,7 +85,8 @@ struct Line : public Drawable {
 struct Wireframe : public Drawable {
 
 	Wireframe(std::string name, std::vector<Coordinate> coordinates) :
-		Drawable(name), coordinates(coordinates) {}
+		Drawable(name),
+		coordinates(coordinates) {}
 
 	std::vector<Coordinate> coordinates;
 	std::vector<Coordinate> window_coordinates;
@@ -93,11 +97,14 @@ struct Wireframe : public Drawable {
 	void setWindowCoordinates(const Matrix &m);
 };
 
-struct Curve2D : public Drawable {
+struct Bezier : public Drawable {
 
-	Curve2D(std::string name, std::vector<BezierCurve> curves) : 
-		Drawable(name), curves(curves) {}
+	Bezier(std::string name, std::vector<BezierCurve> curves) : 
+		Drawable(name),
+		curves(curves) {}
 
+	Bezier(std::string name, std::vector<Coordinate> coordinates);
+	
 	std::vector<BezierCurve> curves;
 	std::vector<BezierCurve> window_curves;
 

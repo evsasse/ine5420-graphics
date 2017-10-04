@@ -139,12 +139,28 @@ void Wireframe::setWindowCoordinates(const Matrix &m)
     window_coordinates = new_coordinates;
 }
 
-std::string Curve2D::type()
+
+Bezier::Bezier(std::string name, std::vector<Coordinate> coordinates) :
+	Drawable(name)
 {
-	return "Curve2D";
+	int max = 4;
+
+	while(max <= coordinates.size()){
+		curves.push_back(BezierCurve(coordinates[max-3],
+			                         coordinates[max-2],
+			                         coordinates[max-1],
+			                         coordinates[max]));
+
+		max += 3;
+	}
 }
 
-Coordinate Curve2D::center()
+std::string Bezier::type()
+{
+	return "Bezier";
+}
+
+Coordinate Bezier::center()
 {
     double cx = (curves[0].c1.x + curves[curves.size() - 1].c4.x) / 2;
     double cy = (curves[0].c1.y + curves[curves.size() - 1].c4.y) / 2;
@@ -152,7 +168,7 @@ Coordinate Curve2D::center()
     return Coordinate(cx, cy);
 }
 
-void Curve2D::applyMatrix(const Matrix &m)
+void Bezier::applyMatrix(const Matrix &m)
 {
 	std::vector<BezierCurve> new_curves;
 
@@ -163,7 +179,7 @@ void Curve2D::applyMatrix(const Matrix &m)
     curves = new_curves;
 }
 
-void Curve2D::setWindowCoordinates(const Matrix &m)
+void Bezier::setWindowCoordinates(const Matrix &m)
 {
 	std::vector<BezierCurve> new_curves;
 

@@ -16,10 +16,12 @@ Gtk::Dialog(cobject), builder(refGlade) {
 	builder->get_widget("PointTreeView", pPointTreeView);
 	builder->get_widget("LineTreeView", pLineTreeView);
 	builder->get_widget("WireframeTreeView", pWireframeTreeView);
+	builder->get_widget("BezierTreeView", pBezierTreeView);
 	pCoordinateListStore = Gtk::ListStore::create(coordinateColumnRecord);
 	add_columns_to(pPointTreeView);
 	add_columns_to(pLineTreeView);
 	add_columns_to(pWireframeTreeView);
+	add_columns_to(pBezierTreeView);
 
 	pAddCoordButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::add_new_coordinate));
 	pOkButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::on_ok_button_clicked));
@@ -73,7 +75,16 @@ void AddObject::on_switch_notebook_page(Gtk::Widget *page, int page_number){
 
 void AddObject::refresh_list_store_avaiable_rows(){
 	auto current_tab = pNotebook->get_current_page();
-	auto n_avaiable = (current_tab == WIREFRAME) ? 9 : current_tab + 1;
+
+	int n_avaiable = 0;
+	int rows = pCoordinateListStore->children().size();
+
+	switch(current_tab){
+		case POINT: n_avaiable = 1; break;
+		case LINE: n_avaiable = 2; break;
+		case WIREFRAME: n_avaiable = rows; break;
+		default: n_avaiable = ((rows-1) / 3) * 3  + 1;
+	}
 
 	auto children = pCoordinateListStore->children();
 	for(auto iter = children.begin(); iter != children.end(); ++iter)
@@ -108,11 +119,30 @@ void AddObject::on_ok_button_clicked(){
 	}
 
 	if(current_tab == POINT){
+		if(coordinates.size() < 1){
+			return;
+		}
 		pDisplayFile->drawables.push_back(new Point(name, coordinates[0]));
-	} else if (current_tab == LINE){
+	}
+	else if (current_tab == LINE){
+		if(coordinates.size() < 2){
+			return;
+		}
 		pDisplayFile->drawables.push_back(new Line(name, coordinates[0], coordinates[1]));
-	} else {
+	}
+	else if(current_tab == WIREFRAME){
+		if(coordinates.size() < 3){
+			return;
+		}
+
 		pDisplayFile->drawables.push_back(new Wireframe(name, coordinates));
+	}
+	else if(current_tab == BEZIER){
+		if(coordinates.size() < 4){
+			return;
+		}
+
+		pDisplayFile->drawables.push_back(new Bezier(name, coordinates));
 	}
 
 	response(0);
