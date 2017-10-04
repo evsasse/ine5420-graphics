@@ -52,6 +52,13 @@ struct Drawable {
 	void rotate(const Coordinate &c, double deg);
 };
 
+struct NCoordsDrawable : Drawable {
+	NCoordsDrawable(std::string name) :
+		Drawable(name) {}
+
+	std::vector<Coordinate> window_coordinates;
+};
+
 struct Point : public Drawable {
 
 	Point(std::string name, Coordinate coordinate) :
@@ -82,14 +89,13 @@ struct Line : public Drawable {
 	void setWindowCoordinates(const Matrix &m);
 };
 
-struct Wireframe : public Drawable {
+struct Wireframe : public NCoordsDrawable {
 
 	Wireframe(std::string name, std::vector<Coordinate> coordinates) :
-		Drawable(name),
+		NCoordsDrawable(name),
 		coordinates(coordinates) {}
 
 	std::vector<Coordinate> coordinates;
-	std::vector<Coordinate> window_coordinates;
 
 	std::string type();
 	Coordinate center();
@@ -97,31 +103,32 @@ struct Wireframe : public Drawable {
 	void setWindowCoordinates(const Matrix &m);
 };
 
-struct Bezier : public Drawable {
+struct Bezier : public NCoordsDrawable {
 
 	Bezier(std::string name, std::vector<BezierCurve> curves) : 
-		Drawable(name),
+		NCoordsDrawable(name),
 		curves(curves) {}
 
 	Bezier(std::string name, std::vector<Coordinate> coordinates);
 	
 	std::vector<BezierCurve> curves;
-	std::vector<BezierCurve> window_curves;
 
 	std::string type();
 	Coordinate center();
 	void applyMatrix(const Matrix &m);
 	void setWindowCoordinates(const Matrix &m);
+
+private:
+	Coordinate blending(double t, const BezierCurve &curve);
 };
 
-struct Spline : public Drawable {
+struct Spline : public NCoordsDrawable {
 
 	Spline(std::string name, std::vector<Coordinate> coordinates) : 
-		Drawable(name),
+		NCoordsDrawable(name),
 		coordinates(coordinates) {}
 	
 	std::vector<Coordinate> coordinates;
-	std::vector<Coordinate> window_coordinates;
 
 	std::string type();
 	Coordinate center();

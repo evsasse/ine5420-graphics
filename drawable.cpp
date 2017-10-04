@@ -141,7 +141,7 @@ void Wireframe::setWindowCoordinates(const Matrix &m)
 
 
 Bezier::Bezier(std::string name, std::vector<Coordinate> coordinates) :
-	Drawable(name)
+	NCoordsDrawable(name)
 {
 	int max = 4;
 
@@ -187,7 +187,30 @@ void Bezier::setWindowCoordinates(const Matrix &m)
 		new_curves.push_back(curve.applyMatrix(m));
 	}
 
-    window_curves = new_curves;
+	std::vector<Coordinate> new_coords;
+
+	for (int i = 0; i < new_curves.size(); ++i) {
+		for (size_t t = 0; t <= 10; t++) {
+			auto coordinate = blending(t/10.0, new_curves[i]);
+			new_coords.push_back(coordinate);
+		}
+	}
+
+	window_coordinates = new_coords;
+}
+
+Coordinate Bezier::blending(double t, const BezierCurve &curve) {
+	double x, y;
+
+	double c1_factor = - pow(t, 3) + 3 * pow(t, 2) - 3 * t + 1;
+	double c2_factor = 3 * pow(t, 3) - 6 * pow(t, 2) + 3 * t;
+	double c3_factor = - 3 * pow(t, 3) + 3 * pow(t, 2);
+	double c4_factor = pow(t, 3);
+
+	x = curve.c1.x * c1_factor + curve.c2.x * c2_factor + curve.c3.x * c3_factor + curve.c4.x * c4_factor;
+	y = curve.c1.y * c1_factor + curve.c2.y * c2_factor + curve.c3.y * c3_factor + curve.c4.y * c4_factor;
+
+	return Coordinate(x, y);
 }
 
 
