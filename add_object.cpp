@@ -17,11 +17,13 @@ Gtk::Dialog(cobject), builder(refGlade) {
 	builder->get_widget("LineTreeView", pLineTreeView);
 	builder->get_widget("WireframeTreeView", pWireframeTreeView);
 	builder->get_widget("BezierTreeView", pBezierTreeView);
+	builder->get_widget("SplineTreeView", pSplineTreeView);
 	pCoordinateListStore = Gtk::ListStore::create(coordinateColumnRecord);
 	add_columns_to(pPointTreeView);
 	add_columns_to(pLineTreeView);
 	add_columns_to(pWireframeTreeView);
 	add_columns_to(pBezierTreeView);
+	add_columns_to(pSplineTreeView);
 
 	pAddCoordButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::add_new_coordinate));
 	pOkButton->signal_clicked().connect(sigc::mem_fun(*this, &AddObject::on_ok_button_clicked));
@@ -83,7 +85,8 @@ void AddObject::refresh_list_store_avaiable_rows(){
 		case POINT: n_avaiable = 1; break;
 		case LINE: n_avaiable = 2; break;
 		case WIREFRAME: n_avaiable = rows; break;
-		default: n_avaiable = ((rows-1) / 3) * 3  + 1;
+		case BEZIER:
+		case SPLINE: n_avaiable = ((rows-1) / 3) * 3  + 1; break;
 	}
 
 	auto children = pCoordinateListStore->children();
@@ -143,6 +146,13 @@ void AddObject::on_ok_button_clicked(){
 		}
 
 		pDisplayFile->drawables.push_back(new Bezier(name, coordinates));
+	}
+	else if(current_tab == SPLINE){
+		if(coordinates.size() < 4){
+			return;
+		}
+
+		pDisplayFile->drawables.push_back(new Spline(name, coordinates));
 	}
 
 	response(0);

@@ -33,6 +33,12 @@ public:
             return bezier;
             //return clip(bezier);
         }
+
+        Spline *spline = dynamic_cast<Spline *>(pDrawable);
+        if (spline) {
+            return spline;
+            //return clip(bezier);
+        }
     }
 
 protected:

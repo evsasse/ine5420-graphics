@@ -43,6 +43,7 @@ protected:
     Gtk::TreeView *pLineTreeView;
     Gtk::TreeView *pWireframeTreeView;
     Gtk::TreeView *pBezierTreeView;
+    Gtk::TreeView *pSplineTreeView;
     CoordinateColumnRecord coordinateColumnRecord;
     Glib::RefPtr<Gtk::ListStore> pCoordinateListStore;
 
@@ -58,7 +59,7 @@ private:
     DisplayFile *pDisplayFile;
     Drawable *pOriginalObject;
 
-    enum NotebookTab { POINT=0, LINE=1, WIREFRAME=2, BEZIER=3 };
+    enum NotebookTab { POINT=0, LINE=1, WIREFRAME=2, BEZIER=3, SPLINE=4 };
 };
 
 #endif

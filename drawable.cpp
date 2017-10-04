@@ -189,3 +189,47 @@ void Bezier::setWindowCoordinates(const Matrix &m)
 
     window_curves = new_curves;
 }
+
+
+std::string Spline::type()
+{
+	return "Spline";
+}
+
+Coordinate Spline::center()
+{
+    double cx = 0;
+    double cy = 0;
+
+    for (auto coordinate : coordinates) {
+        cx += coordinate.x;
+        cy += coordinate.y;
+    }
+
+    cx /= coordinates.size();
+    cy /= coordinates.size();
+
+    return Coordinate(cx, cy);
+}
+
+void Spline::applyMatrix(const Matrix &m)
+{
+	std::vector<Coordinate> new_coordinates;
+
+	for (auto coordinate : coordinates) {
+		new_coordinates.push_back(coordinate.applyMatrix(m));
+	}
+
+    coordinates = new_coordinates;
+}
+
+void Spline::setWindowCoordinates(const Matrix &m)
+{
+	std::vector<Coordinate> new_coordinates;
+
+	for (auto coordinate : coordinates) {
+		new_coordinates.push_back(coordinate.applyMatrix(m));
+	}
+
+    window_coordinates = new_coordinates;
+}

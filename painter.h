@@ -42,6 +42,11 @@ public:
 			return draw(bezier);
 		}
 
+		Spline *spline = dynamic_cast<Spline *>(pDrawable);
+		if (spline) {
+			return draw(spline);
+		}
+
 		return;
 	}
 
@@ -150,6 +155,21 @@ protected:
 		return Coordinate(x, y);
 	}
 
+	void draw(Spline *pSpline)
+	{
+		cr->set_source_rgb(0, 1, 0);
+		
+		auto firstVpCoordinate = mapToViewport(pSpline->window_coordinates[0]);
+
+	    cr->move_to(firstVpCoordinate.x, firstVpCoordinate.y);
+
+	    for (int i = 1; i < pSpline->window_coordinates.size(); ++i) {
+	        auto vpCoordinate = mapToViewport(pSpline->window_coordinates[i]);
+	        cr->line_to(vpCoordinate.x, vpCoordinate.y);
+	    }
+
+	    cr->stroke();
+	}
 };
 
 

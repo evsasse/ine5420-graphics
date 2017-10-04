@@ -114,4 +114,19 @@ struct Bezier : public Drawable {
 	void setWindowCoordinates(const Matrix &m);
 };
 
+struct Spline : public Drawable {
+
+	Spline(std::string name, std::vector<Coordinate> coordinates) : 
+		Drawable(name),
+		coordinates(coordinates) {}
+	
+	std::vector<Coordinate> coordinates;
+	std::vector<Coordinate> window_coordinates;
+
+	std::string type();
+	Coordinate center();
+	void applyMatrix(const Matrix &m);
+	void setWindowCoordinates(const Matrix &m);
+};
+
 #endif
